@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <iostream>
 #include <ctime>
+#include <process.h>
 using namespace std;
 
 volatile int n;
@@ -8,8 +9,8 @@ volatile int n;
 struct Mass {
 	int n;
 	int* A;
-	long end;
-	Mass(int n, int* A, long end) {
+	int end;
+	Mass(int n, int* A, int end) {
 		this->n = n;
 		this->A = new int[n];
 		for (int i = 0; i < n; i++) {
@@ -19,7 +20,7 @@ struct Mass {
 	}
 };
 
-DWORD WINAPI worker(LPVOID par)
+UINT WINAPI worker(LPVOID par)
 {
 	Mass* m = (Mass*)par;
 	int n = m->n;
@@ -45,7 +46,7 @@ int main()
 {
 	int	inc = 10;
 	HANDLE	hThread;
-	DWORD	IDThread;
+	UINT IDThread;
 	int n;
 	int* A;
 
@@ -63,14 +64,18 @@ int main()
 	for (int i = 0; i < n; i++)
 	cin >> A[i];*/
 
-	long start, end;
+	int start, end;
 	cout << "¬ведите врем€ дл€ остановки потока." << endl;
 	cin >> end;
 	cout << "¬ведите врем€ дл€ запуска потока." << endl;
 	cin >> start;
 
 	Mass* mass = new Mass(n, A, end);
-	hThread = CreateThread(NULL, 0, worker, (void*)mass, 0, &IDThread);
+	/*hThread = CreateThread(NULL, 0, worker, (void*)mass, 0, &IDThread);
+	if (hThread == NULL)
+		return GetLastError();*/
+	hThread = (HANDLE)
+		_beginthreadex(NULL, 0, worker, (void*)mass, 0, &IDThread);
 	if (hThread == NULL)
 		return GetLastError();
 
@@ -80,9 +85,9 @@ int main()
 
 
 	delete[] A;
-	// ждем пока поток Add закончит работу
+
 	WaitForSingleObject(hThread, INFINITE);
-	// закрываем дескриптор потока
+
 	CloseHandle(hThread);
 
 	return 0;
