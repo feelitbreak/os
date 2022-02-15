@@ -1,3 +1,5 @@
+//Кендысь Алексей, 2 курс, 9 группа. Лабораторная №1
+
 #include <windows.h>
 #include <iostream>
 #include <ctime>
@@ -34,7 +36,7 @@ UINT WINAPI worker(LPVOID par)
 		if (A[i]) {
 			count++;
 		}
-		// приостанавливаем поток на 12 миллисекунд
+
 		Sleep(12);
 	}
 	Sleep(end);
