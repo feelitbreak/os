@@ -13,6 +13,7 @@ struct Mass {
 	int n;
 	char* A;
 	int k;
+	int avrg;
 	Mass(int n, char* A, int k) {
 		this->n = n;
 		this->A = new char[n];
@@ -49,22 +50,16 @@ DWORD WINAPI work(LPVOID par)
 
 DWORD WINAPI SumElement(LPVOID par)
 {
-	/*Mass* m = (Mass*)par;
-	int n = m->n;
-	char* A = m->A;
-	int k = m->k;
-	int count = 0;
-	cout << "Массив:" << endl;
-	for (int i = 0; i < n; i++)
+	EnterCriticalSection(&cs);
+	WaitForSingleObject(Event2, INFINITE);
+	Mass* m = (Mass*)par;
+	m->avrg = 0;
+	for (int i = 0; i < m->k; i++)
 	{
-		cout << A[i] << endl;
-		if (A[i]) {
-			count++;
-		}
-
-		Sleep(12);
+		m->avrg += m->A[i];
 	}
-	cout << "Количество ненулевых элементов = " << count << endl; */
+	m->avrg /= m->k;
+	LeaveCriticalSection(&cs);
 	return 0;
 }
 
@@ -128,6 +123,17 @@ int main()
 	}
 	cout << endl;
 
+	SetEvent(Event2);
+
+	EnterCriticalSection(&cs);
+	cout << "Result average = " << mass->avrg << endl;
+	cout << "Result mass from k position: ";
+	for (int i = k; i < mass->n; i++)
+	{
+		cout << mass->A[i] << " ";
+	}
+	cout << endl;
+	LeaveCriticalSection(&cs);
 	delete[] A;
 
 	WaitForSingleObject(hThreadWork, INFINITE);
