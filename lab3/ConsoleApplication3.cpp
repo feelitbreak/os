@@ -1,4 +1,4 @@
-//Кендысь Алексей, 2 курс, 9 группа. Лабораторная №1
+//Кендысь Алексей, 2 курс, 9 группа. Лабораторная №3
 
 #include <windows.h>
 #include <iostream>
@@ -13,7 +13,7 @@ struct Mass {
 	int n;
 	char* A;
 	int k;
-	int avrg;
+	double avrg;
 	Mass(int n, char* A, int k) {
 		this->n = n;
 		this->A = new char[n];
@@ -21,6 +21,7 @@ struct Mass {
 			this->A[i] = A[i];
 		}
 		this->k = k;
+		this->avrg = 0;
 	}
 };
 
