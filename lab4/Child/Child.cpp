@@ -3,10 +3,11 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
+	int n = atoi(argv[1]);
+
 	HANDLE	hMutex;
-	int		i, j;
 
 	// открываем мьютекс
 	hMutex = OpenMutex(SYNCHRONIZE, FALSE, "ChildMutex");
@@ -19,19 +20,20 @@ int main()
 		return GetLastError();
 	}
 
-	for (j = 10; j < 20; j++)
+	HANDLE EventB = OpenEvent(SYNCHRONIZE, FALSE, "B");
+	if (EventB == NULL)
+		return GetLastError();
+
+	string mess;
+	for (int i = 0; i < n; i++)
 	{
 		// захватываем мьютекс
 		WaitForSingleObject(hMutex, INFINITE);
-		for (i = 0; i < 10; i++)
-		{
-			cout << j << ' ';
-			cout.flush();
-			Sleep(5);
-		}
-		cout << endl;
-		// освобождаем мьютекс
+		cout << "Input B message." << endl;
+		cin >> mess;
+		SetEvent(EventB);
 		ReleaseMutex(hMutex);
+		Sleep(500);
 	}
 	// закрываем дескриптор объекта
 	CloseHandle(hMutex);

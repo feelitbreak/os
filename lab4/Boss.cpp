@@ -57,38 +57,47 @@ int main()
 	cout << "Input the amount of Child messages." << endl;
 	cin >> nMes2;
 
-	char	lpszAppNameParent[] = "Parent.exe";
-	char	lpszAppNameChild[] = "Child.exe";
-	STARTUPINFO	siChild;
-	STARTUPINFO	siParent;
-	PROCESS_INFORMATION	piChild;
-	PROCESS_INFORMATION	piParent;
+	char	lpszAppNameParent[] = "Parent.exe ";
+	char	lpszAppNameChild[] = "Child.exe ";
+	char buff[256];
 
-	ZeroMemory(&siChild, sizeof(STARTUPINFO));
-	siChild.cb = sizeof(STARTUPINFO);
-
-	ZeroMemory(&siParent, sizeof(STARTUPINFO));
-	siParent.cb = sizeof(STARTUPINFO);
-
-	if (!CreateProcess(lpszAppNameChild, NULL, NULL, NULL, FALSE,
-		NULL, NULL, NULL, &siChild, &piChild))
+	for (int i = 0; i < nPr1; i++) 
 	{
-		cout << "The new process Child is not created." << endl;
-		cout << "Press any key to exit." << endl;
-		cin.get();
+		STARTUPINFO	siParent;
+		PROCESS_INFORMATION	piParent;
+		ZeroMemory(&siParent, sizeof(STARTUPINFO));
+		siParent.cb = sizeof(STARTUPINFO);
+		if (!CreateProcess(NULL, strcat(lpszAppNameParent, itoa(nMes1, buff, 10)), NULL, NULL, FALSE,
+			NULL, NULL, NULL, &siParent, &piParent))
+		{
+			cout << "The new process Parent is not created." << endl;
+			cout << "Press any key to exit." << endl;
+			cin.get();
 
-		return GetLastError();
+			return GetLastError();
+		}
+
+		WaitForSingleObject(hSemaphore, INFINITE);
+		
 	}
 
-	if (!CreateProcess(lpszAppNameParent, NULL, NULL, NULL, FALSE,
-		NULL, NULL, NULL, &siParent, &piParent))
+	for (int i = 0; i < nPr2; i++)
 	{
-		cout << "The new process Parent is not created." << endl;
-		cout << "Press any key to exit." << endl;
-		cin.get();
+		STARTUPINFO	siChild;
+		PROCESS_INFORMATION	piChild;
+		ZeroMemory(&siChild, sizeof(STARTUPINFO));
+		siChild.cb = sizeof(STARTUPINFO);
+		if (!CreateProcess(NULL, strcat(lpszAppNameChild, itoa(nMes2, buff, 10)), NULL, NULL, FALSE,
+			NULL, NULL, NULL, &siChild, &piChild))
+		{
+			cout << "The new process Child is not created." << endl;
+			cout << "Press any key to exit." << endl;
+			cin.get();
 
-		return GetLastError();
+			return GetLastError();
+		}
 	}
+
 
 	// выводим на экран строки
 	for (int j = 0; j < 10; j++)

@@ -4,8 +4,10 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
+	int n = atoi(argv[1]);
+
 	HANDLE hSemaphore;
 	hSemaphore = OpenSemaphore(SYNCHRONIZE, FALSE, "ParentSemaphore");
 	if (hSemaphore == NULL)
@@ -17,17 +19,19 @@ int main()
 		return GetLastError();
 	}
 
-	string mess;
-	cout << "Input A message." << endl;
-	cin >> mess;
-
 	HANDLE EventA = OpenEvent(SYNCHRONIZE, FALSE, "A");
 	if (EventA == NULL)
 		return GetLastError();
 
-
-	SetEvent(EventA);
-	ReleaseSemaphore(hSemaphore, 1, NULL);
+	string mess;
+	for (int i = 0; i < n; i++)
+	{
+		cout << "Input A message." << endl;
+		cin >> mess;
+		SetEvent(EventA);
+		ReleaseSemaphore(hSemaphore, 1, NULL);
+		Sleep(500);
+	}
 
 	CloseHandle(hSemaphore);
 
