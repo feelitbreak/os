@@ -10,23 +10,29 @@ HANDLE EventA, EventB, EventEndChild, EventEndParent;
 
 int main()
 {
-	EventA = CreateEvent(NULL, FALSE, FALSE, NULL);
+	EventA = CreateEvent(NULL, FALSE, FALSE, "A");
 	if (EventA == NULL)
 		return GetLastError();
-	EventB = CreateEvent(NULL, FALSE, FALSE, NULL);
+	EventB = CreateEvent(NULL, FALSE, FALSE, "B");
 	if (EventB == NULL)
 		return GetLastError();
-	EventEndChild = CreateEvent(NULL, FALSE, FALSE, NULL);
+	EventEndChild = CreateEvent(NULL, FALSE, FALSE, "EndChild");
 	if (EventEndChild == NULL)
 		return GetLastError();
-	EventEndParent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	EventEndParent = CreateEvent(NULL, FALSE, FALSE, "EndParent");
 	if (EventEndParent == NULL)
 		return GetLastError();
 
 	HANDLE hSemaphore;
-	hSemaphore = CreateSemaphore(NULL, 0, 10, "ParentSemaphore");
+	hSemaphore = CreateSemaphore(NULL, 0, 1, "ParentSemaphore");
 	if (hSemaphore == NULL)
+	{
+		cout << "Create semaphore failed." << endl;
+		cout << "Press any key to exit." << endl;
+		cin.get();
+
 		return GetLastError();
+	}
 
 	HANDLE	hMutex;
 	hMutex = CreateMutex(NULL, FALSE, "ChildMutex");

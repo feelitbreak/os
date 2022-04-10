@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -15,14 +16,18 @@ int main()
 
 		return GetLastError();
 	}
-	int i;
 
-	for (i = 0; i < 10; i++)
-	{
-		// отмечаем, что один элемент готов
-		ReleaseSemaphore(hSemaphore, 1, NULL);
-		Sleep(500);
-	}
+	string mess;
+	cout << "Input A message." << endl;
+	cin >> mess;
+
+	HANDLE EventA = OpenEvent(SYNCHRONIZE, FALSE, "A");
+	if (EventA == NULL)
+		return GetLastError();
+
+
+	SetEvent(EventA);
+	ReleaseSemaphore(hSemaphore, 1, NULL);
 
 	CloseHandle(hSemaphore);
 
