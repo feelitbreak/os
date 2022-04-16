@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
 	int n = atoi(argv[1]);
 
-	HANDLE	hMutex;
+	HANDLE hMutex;
 
 	hMutex = OpenMutex(SYNCHRONIZE, FALSE, "ChildMutex");
 	if (hMutex == NULL)
@@ -29,6 +29,10 @@ int main(int argc, char* argv[])
 	WaitForSingleObject(hMutex, INFINITE);
 	char mes;
 	for (int i = 0; i < n; i++) {
+		if (WaitForSingleObject(EventEndChild, NULL) == WAIT_OBJECT_0)
+		{
+			break;
+		}
 		cout << "Input message." << endl;
 		cin >> mes;
 		if (mes == 'B')
@@ -46,7 +50,6 @@ int main(int argc, char* argv[])
 	WaitForSingleObject(EventEndChild, INFINITE);
 
 	CloseHandle(hMutex);
-	CloseHandle(EventB);
 	CloseHandle(EventEndChild);
 
 	return 0;

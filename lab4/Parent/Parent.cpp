@@ -29,6 +29,10 @@ int main(int argc, char* argv[])
 	WaitForSingleObject(hSemaphore, INFINITE);
 	char mes;
 	for (int i = 0; i < n; i++) {
+		if (WaitForSingleObject(EventEndParent, NULL) == WAIT_OBJECT_0)
+		{
+			break;
+		}
 		cout << "Input message." << endl;
 		cin >> mes;
 		if (mes == 'A')
@@ -46,7 +50,6 @@ int main(int argc, char* argv[])
 	WaitForSingleObject(EventEndParent, INFINITE);
 
 	CloseHandle(hSemaphore);
-	CloseHandle(EventA);
 	CloseHandle(EventEndParent);
 
 	return 0;

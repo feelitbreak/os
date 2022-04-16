@@ -57,9 +57,14 @@ int main()
 	cout << "Input the amount of Child messages." << endl;
 	cin >> nMes2;
 
-	char	lpszAppNameParent[] = "Parent.exe ";
-	char	lpszAppNameChild[] = "Child.exe ";
 	char buff[256];
+	char* ParentLine = new char[255];
+	strcpy(ParentLine, "Parent.exe ");
+	strcat(ParentLine, _itoa(nMes1, buff, 10));
+	char* ChildLine = new char[255];
+	strcpy(ChildLine, "Child.exe ");
+	strcat(ChildLine, _itoa(nMes2, buff, 10));
+
 	HANDLE* hMass = new HANDLE[nPr1 + nPr2];
 
 	for (int i = 0; i < nPr1; i++) 
@@ -68,7 +73,7 @@ int main()
 		PROCESS_INFORMATION	piParent;
 		ZeroMemory(&siParent, sizeof(STARTUPINFO));
 		siParent.cb = sizeof(STARTUPINFO);
-		if (!CreateProcess(NULL, strcat(lpszAppNameParent, _itoa(nMes1, buff, 10)), NULL, NULL, FALSE,
+		if (!CreateProcess(NULL, ParentLine, NULL, NULL, FALSE,
 			CREATE_NEW_CONSOLE, NULL, NULL, &siParent, &piParent))
 		{
 			cout << "The new process Parent is not created." << endl;
@@ -86,7 +91,7 @@ int main()
 		PROCESS_INFORMATION	piChild;
 		ZeroMemory(&siChild, sizeof(STARTUPINFO));
 		siChild.cb = sizeof(STARTUPINFO);
-		if (!CreateProcess(NULL, strcat(lpszAppNameChild, _itoa(nMes2, buff, 10)), NULL, NULL, FALSE,
+		if (!CreateProcess(NULL, ChildLine, NULL, NULL, FALSE,
 			CREATE_NEW_CONSOLE, NULL, NULL, &siChild, &piChild))
 		{
 			cout << "The new process Child is not created." << endl;
@@ -101,7 +106,7 @@ int main()
 	HANDLE mass[] = {EventA, EventB};
 	int k1 = 0;
 	int k2 = 0;
-	for(int i = 0; i < nMes1 + nMes2; i++)
+	for(int i = 0; i < nMes1 * nPr1 + nMes2 * nPr2; i++)
 	{
 		int ind = WaitForMultipleObjects(2, mass, FALSE, INFINITE) - WAIT_OBJECT_0;
 		if(ind == 0) 
@@ -124,19 +129,13 @@ int main()
 		}
 	}
 
-	cout << "Press any key to finish." << endl;
-	cin.get();
+	cout << "All messages have been sent. Closing the app." << endl;
 
 	SetEvent(EventEndParent);
 	SetEvent(EventEndChild);
 	
-	CloseHandle(hSemaphore);
-	CloseHandle(hMutex);
-	
 	CloseHandle(EventA);
 	CloseHandle(EventB);
-	CloseHandle(EventEndChild);
-	CloseHandle(EventEndParent);
 
 	for (int i = 0; i < nPr1 + nPr2; i++) 
 	{
