@@ -5,7 +5,6 @@
 
 using namespace std;
 
-
 HANDLE EventA, EventB, EventEndChild, EventEndParent;
 
 int main()
@@ -104,28 +103,18 @@ int main()
 	}
 
 	HANDLE mass[] = {EventA, EventB};
-	int k1 = 0;
-	int k2 = 0;
 	for(int i = 0; i < nMes1 * nPr1 + nMes2 * nPr2; i++)
 	{
 		int ind = WaitForMultipleObjects(2, mass, FALSE, INFINITE) - WAIT_OBJECT_0;
 		if(ind == 0) 
 		{
-			k1++;
 			cout << "Message A by Parent\n";
 			ResetEvent(EventA);
-			if (k1 == nMes1) {
-				SetEvent(EventEndParent);
-			}
 		}
 		if(ind == 1)
 		{
-			k2++;
 			cout << "Message B by Child\n";
 			ResetEvent(EventB); 
-			if (k2 == nMes2) {
-				SetEvent(EventEndChild);
-			}
 		}
 	}
 

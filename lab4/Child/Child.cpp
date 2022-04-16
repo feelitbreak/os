@@ -29,10 +29,6 @@ int main(int argc, char* argv[])
 	WaitForSingleObject(hMutex, INFINITE);
 	char mes;
 	for (int i = 0; i < n; i++) {
-		if (WaitForSingleObject(EventEndChild, NULL) == WAIT_OBJECT_0)
-		{
-			break;
-		}
 		cout << "Input message." << endl;
 		cin >> mes;
 		if (mes == 'B')

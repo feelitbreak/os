@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 	int n = atoi(argv[1]);
 
 	HANDLE hSemaphore;
-	hSemaphore = OpenSemaphore(SEMAPHORE_MODIFY_STATE, FALSE, "ParentSemaphore");
+	hSemaphore = OpenSemaphore(SEMAPHORE_ALL_ACCESS, FALSE, "ParentSemaphore");
 	if (hSemaphore == NULL)
 	{
 		cout << "Open semaphore failed." << endl;
@@ -29,10 +29,6 @@ int main(int argc, char* argv[])
 	WaitForSingleObject(hSemaphore, INFINITE);
 	char mes;
 	for (int i = 0; i < n; i++) {
-		if (WaitForSingleObject(EventEndParent, NULL) == WAIT_OBJECT_0)
-		{
-			break;
-		}
 		cout << "Input message." << endl;
 		cin >> mes;
 		if (mes == 'A')
