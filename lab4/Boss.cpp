@@ -77,7 +77,7 @@ int main()
 
 			return GetLastError();
 		}
-		
+		hMass[i] = piParent.hProcess;
 	}
 
 	for (int i = 0; i < nPr2; i++)
@@ -87,7 +87,7 @@ int main()
 		ZeroMemory(&siChild, sizeof(STARTUPINFO));
 		siChild.cb = sizeof(STARTUPINFO);
 		if (!CreateProcess(NULL, strcat(lpszAppNameChild, _itoa(nMes2, buff, 10)), NULL, NULL, FALSE,
-			NULL, NULL, NULL, &siChild, &piChild))
+			CREATE_NEW_CONSOLE, NULL, NULL, &siChild, &piChild))
 		{
 			cout << "The new process Child is not created." << endl;
 			cout << "Press any key to exit." << endl;
@@ -95,38 +95,53 @@ int main()
 
 			return GetLastError();
 		}
+		hMass[nPr1 + i] = piChild.hProcess;
 	}
 
-	HANDLE mass[] = { EventA, EventB};
-
+	HANDLE mass[] = {EventA, EventB};
+	int k1 = 0;
+	int k2 = 0;
 	for(int i = 0; i < nMes1 + nMes2; i++)
 	{
 		int ind = WaitForMultipleObjects(2, mass, FALSE, INFINITE) - WAIT_OBJECT_0;
 		if(ind == 0) 
 		{
+			k1++;
 			cout << "Message A by Parent\n";
 			ResetEvent(EventA);
+			if (k1 == nMes1) {
+				SetEvent(EventEndParent);
+			}
 		}
 		if(ind == 1)
 		{
+			k2++;
 			cout << "Message B by Child\n";
-			ResetEvent(EventB);
+			ResetEvent(EventB); 
+			if (k2 == nMes2) {
+				SetEvent(EventEndChild);
+			}
 		}
 	}
+
+	cout << "Press any key to finish." << endl;
+	cin.get();
 
 	SetEvent(EventEndParent);
 	SetEvent(EventEndChild);
 	
 	CloseHandle(hSemaphore);
 	CloseHandle(hMutex);
-
-
 	
-
 	CloseHandle(EventA);
 	CloseHandle(EventB);
 	CloseHandle(EventEndChild);
 	CloseHandle(EventEndParent);
+
+	for (int i = 0; i < nPr1 + nPr2; i++) 
+	{
+		CloseHandle(hMass[i]);
+	}
 
 	return 0;
 }

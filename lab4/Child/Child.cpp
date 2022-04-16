@@ -9,7 +9,6 @@ int main(int argc, char* argv[])
 
 	HANDLE	hMutex;
 
-	// открываем мьютекс
 	hMutex = OpenMutex(SYNCHRONIZE, FALSE, "ChildMutex");
 	if (hMutex == NULL)
 	{
@@ -20,32 +19,35 @@ int main(int argc, char* argv[])
 		return GetLastError();
 	}
 
-	HANDLE EventB = OpenEvent(SYNCHRONIZE, FALSE, "B");
+	HANDLE EventB = OpenEvent(EVENT_MODIFY_STATE, FALSE, "B");
 	if (EventB == NULL)
 		return GetLastError();
-	HANDLE EventEndChild = OpenEvent(SYNCHRONIZE, FALSE, "EndChild");
+	HANDLE EventEndChild = OpenEvent(EVENT_MODIFY_STATE, FALSE, "EndChild");
 	if (EventEndChild == NULL)
 		return GetLastError();
+
 	WaitForSingleObject(hMutex, INFINITE);
 	char mes;
-	int i = 0;
-	while (i < n)
-	{
+	for (int i = 0; i < n; i++) {
 		cout << "Input message." << endl;
 		cin >> mes;
 		if (mes == 'B')
 		{
-			i++;
 			SetEvent(EventB);
+		} 
+		else 
+		{
+			i--;
 		}
-
-		Sleep(500);
 	}
+
 	ReleaseMutex(hMutex);
 	
 	WaitForSingleObject(EventEndChild, INFINITE);
 
 	CloseHandle(hMutex);
+	CloseHandle(EventB);
+	CloseHandle(EventEndChild);
 
 	return 0;
 }

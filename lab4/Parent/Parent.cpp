@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 	int n = atoi(argv[1]);
 
 	HANDLE hSemaphore;
-	hSemaphore = OpenSemaphore(SYNCHRONIZE, FALSE, "ParentSemaphore");
+	hSemaphore = OpenSemaphore(SEMAPHORE_MODIFY_STATE, FALSE, "ParentSemaphore");
 	if (hSemaphore == NULL)
 	{
 		cout << "Open semaphore failed." << endl;
@@ -19,31 +19,35 @@ int main(int argc, char* argv[])
 		return GetLastError();
 	}
 
-	HANDLE EventA = OpenEvent(SYNCHRONIZE, FALSE, "A");
+	HANDLE EventA = OpenEvent(EVENT_MODIFY_STATE, FALSE, "A");
 	if (EventA == NULL)
 		return GetLastError();
-	HANDLE EventEndParent = OpenEvent(SYNCHRONIZE, FALSE, "EndParent");
+	HANDLE EventEndParent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "EndParent");
 	if (EventEndParent == NULL)
 		return GetLastError();
 
 	WaitForSingleObject(hSemaphore, INFINITE);
 	char mes;
-	int i = 0;
-	while(i < n)
-	{
+	for (int i = 0; i < n; i++) {
 		cout << "Input message." << endl;
 		cin >> mes;
 		if (mes == 'A')
 		{
-			i++;
 			SetEvent(EventA);
+		} 
+		else 
+		{
+			i--;
 		}
 	}
+
 	ReleaseSemaphore(hSemaphore, 1, NULL);
 
 	WaitForSingleObject(EventEndParent, INFINITE);
 
 	CloseHandle(hSemaphore);
+	CloseHandle(EventA);
+	CloseHandle(EventEndParent);
 
 	return 0;
 }
