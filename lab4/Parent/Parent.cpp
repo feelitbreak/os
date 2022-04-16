@@ -22,16 +22,26 @@ int main(int argc, char* argv[])
 	HANDLE EventA = OpenEvent(SYNCHRONIZE, FALSE, "A");
 	if (EventA == NULL)
 		return GetLastError();
+	HANDLE EventEndParent = OpenEvent(SYNCHRONIZE, FALSE, "EndParent");
+	if (EventEndParent == NULL)
+		return GetLastError();
 
-	string mess;
-	for (int i = 0; i < n; i++)
+	WaitForSingleObject(hSemaphore, INFINITE);
+	char mes;
+	int i = 0;
+	while(i < n)
 	{
-		cout << "Input A message." << endl;
-		cin >> mess;
-		SetEvent(EventA);
-		ReleaseSemaphore(hSemaphore, 1, NULL);
-		Sleep(500);
+		cout << "Input message." << endl;
+		cin >> mes;
+		if (mes == 'A')
+		{
+			i++;
+			SetEvent(EventA);
+		}
 	}
+	ReleaseSemaphore(hSemaphore, 1, NULL);
+
+	WaitForSingleObject(EventEndParent, INFINITE);
 
 	CloseHandle(hSemaphore);
 

@@ -23,19 +23,28 @@ int main(int argc, char* argv[])
 	HANDLE EventB = OpenEvent(SYNCHRONIZE, FALSE, "B");
 	if (EventB == NULL)
 		return GetLastError();
-
-	string mess;
-	for (int i = 0; i < n; i++)
+	HANDLE EventEndChild = OpenEvent(SYNCHRONIZE, FALSE, "EndChild");
+	if (EventEndChild == NULL)
+		return GetLastError();
+	WaitForSingleObject(hMutex, INFINITE);
+	char mes;
+	int i = 0;
+	while (i < n)
 	{
-		// захватываем мьютекс
-		WaitForSingleObject(hMutex, INFINITE);
-		cout << "Input B message." << endl;
-		cin >> mess;
-		SetEvent(EventB);
-		ReleaseMutex(hMutex);
+		cout << "Input message." << endl;
+		cin >> mes;
+		if (mes == 'B')
+		{
+			i++;
+			SetEvent(EventB);
+		}
+
 		Sleep(500);
 	}
-	// закрываем дескриптор объекта
+	ReleaseMutex(hMutex);
+	
+	WaitForSingleObject(EventEndChild, INFINITE);
+
 	CloseHandle(hMutex);
 
 	return 0;

@@ -1,5 +1,5 @@
 //Кендысь Алексей, 2 курс, 9 группа. Лабораторная №4
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <iostream>
 
@@ -24,7 +24,7 @@ int main()
 		return GetLastError();
 
 	HANDLE hSemaphore;
-	hSemaphore = CreateSemaphore(NULL, 0, 1, "ParentSemaphore");
+	hSemaphore = CreateSemaphore(NULL, 1, 1, "ParentSemaphore");
 	if (hSemaphore == NULL)
 	{
 		cout << "Create semaphore failed." << endl;
@@ -60,6 +60,7 @@ int main()
 	char	lpszAppNameParent[] = "Parent.exe ";
 	char	lpszAppNameChild[] = "Child.exe ";
 	char buff[256];
+	HANDLE* hMass = new HANDLE[nPr1 + nPr2];
 
 	for (int i = 0; i < nPr1; i++) 
 	{
@@ -67,8 +68,8 @@ int main()
 		PROCESS_INFORMATION	piParent;
 		ZeroMemory(&siParent, sizeof(STARTUPINFO));
 		siParent.cb = sizeof(STARTUPINFO);
-		if (!CreateProcess(NULL, strcat(lpszAppNameParent, itoa(nMes1, buff, 10)), NULL, NULL, FALSE,
-			NULL, NULL, NULL, &siParent, &piParent))
+		if (!CreateProcess(NULL, strcat(lpszAppNameParent, _itoa(nMes1, buff, 10)), NULL, NULL, FALSE,
+			CREATE_NEW_CONSOLE, NULL, NULL, &siParent, &piParent))
 		{
 			cout << "The new process Parent is not created." << endl;
 			cout << "Press any key to exit." << endl;
@@ -76,8 +77,6 @@ int main()
 
 			return GetLastError();
 		}
-
-		WaitForSingleObject(hSemaphore, INFINITE);
 		
 	}
 
@@ -87,7 +86,7 @@ int main()
 		PROCESS_INFORMATION	piChild;
 		ZeroMemory(&siChild, sizeof(STARTUPINFO));
 		siChild.cb = sizeof(STARTUPINFO);
-		if (!CreateProcess(NULL, strcat(lpszAppNameChild, itoa(nMes2, buff, 10)), NULL, NULL, FALSE,
+		if (!CreateProcess(NULL, strcat(lpszAppNameChild, _itoa(nMes2, buff, 10)), NULL, NULL, FALSE,
 			NULL, NULL, NULL, &siChild, &piChild))
 		{
 			cout << "The new process Child is not created." << endl;
@@ -98,34 +97,31 @@ int main()
 		}
 	}
 
+	HANDLE mass[] = { EventA, EventB};
 
-	// выводим на экран строки
-	for (int j = 0; j < 10; j++)
+	for(int i = 0; i < nMes1 + nMes2; i++)
 	{
-		// захватываем мьютекс
-		WaitForSingleObject(hMutex, INFINITE);
-		for (int i = 0; i < 10; i++)
+		int ind = WaitForMultipleObjects(2, mass, FALSE, INFINITE) - WAIT_OBJECT_0;
+		if(ind == 0) 
 		{
-			cout << j << ' ';
-			cout.flush();
-			Sleep(10);
+			cout << "Message A by Parent\n";
+			ResetEvent(EventA);
 		}
-		cout << endl;
-		// освобождаем мьютекс
-		ReleaseMutex(hMutex);
+		if(ind == 1)
+		{
+			cout << "Message B by Child\n";
+			ResetEvent(EventB);
+		}
 	}
 
+	SetEvent(EventEndParent);
+	SetEvent(EventEndChild);
+	
 	CloseHandle(hSemaphore);
 	CloseHandle(hMutex);
 
-	WaitForSingleObject(piChild.hProcess, INFINITE);
-	WaitForSingleObject(piParent.hProcess, INFINITE);
 
-	CloseHandle(piChild.hThread);
-	CloseHandle(piChild.hProcess);
-
-	CloseHandle(piParent.hThread);
-	CloseHandle(piParent.hProcess);
+	
 
 	CloseHandle(EventA);
 	CloseHandle(EventB);
