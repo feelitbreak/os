@@ -22,11 +22,12 @@ int main(int argc, char* argv[])
 	HANDLE EventB = OpenEvent(EVENT_MODIFY_STATE, FALSE, "B");
 	if (EventB == NULL)
 		return GetLastError();
-	HANDLE EventEndChild = OpenEvent(EVENT_MODIFY_STATE, FALSE, "EndChild");
+	HANDLE EventEndChild = OpenEvent(SYNCHRONIZE, FALSE, "EndChild");
 	if (EventEndChild == NULL)
 		return GetLastError();
 
 	WaitForSingleObject(hMutex, INFINITE);
+	cout << "I am active.\n";
 	char mes;
 	for (int i = 0; i < n; i++) {
 		cout << "Input message." << endl;
@@ -42,6 +43,7 @@ int main(int argc, char* argv[])
 	}
 
 	ReleaseMutex(hMutex);
+	cout << "Waiting for other processes.\n";
 	
 	WaitForSingleObject(EventEndChild, INFINITE);
 
