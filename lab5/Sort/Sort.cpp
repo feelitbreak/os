@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <conio.h>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -22,15 +23,19 @@ int main(int argc, char* argv[])
 
 	hWritePipe = (HANDLE)atoi(argv[1]);
 	hReadPipe = (HANDLE)atoi(argv[2]);
+	cout << hReadPipe << endl;
+	_cprintf("%s\n", argv[2]);
+	_cprintf("%d", (int)hReadPipe);
 
 	WaitForSingleObject(ReadyToRead1, INFINITE);
+
 	int n;
 	__int8 elem;
 	DWORD dwBytesRead;
 	if (!ReadFile(
 		hReadPipe,
 		&n,
-		sizeof(int),
+		sizeof(n),
 		&dwBytesRead,
 		NULL))
 	{
@@ -41,7 +46,7 @@ int main(int argc, char* argv[])
 	}
 	_cprintf("The size of the array %d has been read from the pipe.\n", n);
 	__int8* mass = new __int8[n];
-	for (int i = 0; i < n; i++)
+	/*for (int i = 0; i < n; i++)
 	{
 		if (!ReadFile(
 			hReadPipe,
@@ -57,13 +62,13 @@ int main(int argc, char* argv[])
 		}
 		_cprintf("The element %c has been read from the pipe.\n", elem);
 		mass[i] = elem;
-	}
+	}*/
 	_cputs("The process finished reading from the pipe.\n");
 
 	sort(mass, mass + n, [](__int8 x, __int8 y) { return (x < y); });
 	_cputs("Sorted array: ");
 	for (int i = 0; i < n; i++) {
-		_cprintf("%c ", elem);
+		_cprintf("%c ", mass[i]);
 	}
 	_cputs("\n");
 

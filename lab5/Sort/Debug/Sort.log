@@ -1,0 +1,3 @@
+﻿  Sort.cpp
+D:\ConsoleApplication5\Sort\Sort.cpp(33,9): warning C4101: 'elem': unreferenced local variable
+  Sort.vcxproj -> D:\ConsoleApplication5\Debug\Sort.exe
