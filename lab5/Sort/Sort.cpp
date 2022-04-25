@@ -1,20 +1,102 @@
-// Sort.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+// Пример процесса клиента анонимного канала.
+// Клиент сначала пишет в анонимный канал, а потом читает из него.
+// Дескриптор анонимного канала передается клиенту через командную строку. 
 
-#include <iostream>
+#include <windows.h>
+#include <conio.h>
+#include <algorithm>
 
-int main()
+using namespace std;
+
+int main(int argc, char* argv[])
 {
-    std::cout << "Hello World!\n";
+	HANDLE hWritePipe, hReadPipe;
+	HANDLE ReadyToRead1, ReadyToRead2;
+
+	ReadyToRead1 = OpenEvent(EVENT_ALL_ACCESS, FALSE, "Ready1");
+	if (ReadyToRead1 == NULL)
+		return GetLastError();
+	ReadyToRead2 = OpenEvent(EVENT_ALL_ACCESS, FALSE, "Ready2");
+	if (ReadyToRead2 == NULL)
+		return GetLastError();
+
+	hWritePipe = (HANDLE)atoi(argv[1]);
+	hReadPipe = (HANDLE)atoi(argv[2]);
+
+	WaitForSingleObject(ReadyToRead1, INFINITE);
+	int n;
+	__int8 elem;
+	DWORD dwBytesRead;
+	if (!ReadFile(
+		hReadPipe,
+		&n,
+		sizeof(int),
+		&dwBytesRead,
+		NULL))
+	{
+		_cputs("Read from the pipe failed.\n");
+		_cputs("Press any key to finish.\n");
+		_getch();
+		return GetLastError();
+	}
+	_cprintf("The size of the array %d has been read from the pipe.\n", n);
+	__int8* mass = new __int8[n];
+	for (int i = 0; i < n; i++)
+	{
+		if (!ReadFile(
+			hReadPipe,
+			&elem,
+			sizeof(__int8),
+			&dwBytesRead,
+			NULL))
+		{
+			_cputs("Read from the pipe failed.\n");
+			_cputs("Press any key to finish.\n");
+			_getch();
+			return GetLastError();
+		}
+		_cprintf("The element %c has been read from the pipe.\n", elem);
+		mass[i] = elem;
+	}
+	_cputs("The process finished reading from the pipe.\n");
+
+	sort(mass, mass + n, [](__int8 x, __int8 y) { return (x < y); });
+	_cputs("Sorted array: ");
+	for (int i = 0; i < n; i++) {
+		_cprintf("%c ", elem);
+	}
+	_cputs("\n");
+
+
+	for (int i = 0; i < n; i++)
+	{
+		DWORD dwBytesWritten;
+		if (!WriteFile(
+			hWritePipe,
+			&mass[i],
+			sizeof(__int8),
+			&dwBytesWritten,
+			NULL))
+		{
+			_cputs("Write to file failed.\n");
+			_cputs("Press any key to finish.\n");
+			_getch();
+			return GetLastError();
+		}
+		_cprintf("The elem %d has been written to the pipe.\n", mass[i]);
+	}
+	_cputs("The process finished writing to the pipe.\n");
+	SetEvent(ReadyToRead2);
+
+	
+	_cputs("Press any key to exit.\n");
+	_getch();
+
+	// закрываем дескрипторы канала
+	CloseHandle(hWritePipe);
+	CloseHandle(hReadPipe);
+	CloseHandle(ReadyToRead1);
+	CloseHandle(ReadyToRead2);
+
+	return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
