@@ -1,2 +1,0 @@
-D:\lab4\x64\Debug\Boss.exe
-D:\studies\Для кодинга\lab4\x64\Debug\Boss.exe
