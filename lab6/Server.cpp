@@ -33,7 +33,7 @@ int main()
 	SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
 	sa.lpSecurityDescriptor = &sd;
 
-	hNamedPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_WAIT, 1, 0, 0, INFINITE, &sa);
+	hNamedPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 0, 0, INFINITE, &sa);
 	if (hNamedPipe == INVALID_HANDLE_VALUE)
 	{
 		_cputs("Create pipe failed.\n");

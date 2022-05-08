@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <conio.h>
 #include <algorithm>
@@ -14,7 +15,9 @@ int main(int argc, char* argv[])
 
 	_cputs("Input the name of the server machine.\n");
 	_cscanf("%s", machineName);
-	_cprintf(pipeName, "\\\\%s\\pipe\\demo_pipe", machineName);
+	strcpy(pipeName, "\\\\");
+	strcat(pipeName, machineName);
+	strcat(pipeName, "\\pipe\\demo_pipe");
 
 	hNamedPipe = CreateFile(
 		pipeName,
@@ -25,24 +28,36 @@ int main(int argc, char* argv[])
 		FILE_ATTRIBUTE_NORMAL,
 		(HANDLE)NULL
 	);
+	if (hNamedPipe == INVALID_HANDLE_VALUE)
+	{
+		_cputs("Create pipe failed.\n");
+		_cputs("Press any key to finish.\n");
+		_getch();
 
-	int n;
+		return GetLastError();
+	}
+
+	int n = 0;
 	__int8 elem;
 	__int8* mass;
 	DWORD dwBytesRead;
+
 	if (!ReadFile(hNamedPipe, &n, sizeof(n), &dwBytesRead, (LPOVERLAPPED)NULL))
 	{
+		CloseHandle(hNamedPipe);
 		_cputs("Read from the pipe failed.\n");
 		_cputs("Press any key to finish.\n");
 		_getch();
 		return GetLastError();
 	}
 	_cprintf("The size of the array %d has been read from the pipe.\n", n);
+
 	mass = new __int8[n];
 	for (int i = 0; i < n; i++)
 	{
 		if (!ReadFile(hNamedPipe, &elem, sizeof(__int8), &dwBytesRead, (LPOVERLAPPED)NULL))
 		{
+			CloseHandle(hNamedPipe);
 			_cputs("Read from the pipe failed.\n");
 			_cputs("Press any key to finish.\n");
 			_getch();
@@ -52,6 +67,7 @@ int main(int argc, char* argv[])
 		mass[i] = elem;
 	}
 	_cputs("The process finished reading from the pipe.\n");
+
 
 	sort(mass, mass + n, [](__int8 x, __int8 y) { return (x < y); });
 	_cputs("Sorted array: ");
@@ -66,6 +82,7 @@ int main(int argc, char* argv[])
 		DWORD dwBytesWritten;
 		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, (LPOVERLAPPED)NULL))
 		{
+			CloseHandle(hNamedPipe);
 			_cputs("Write to file failed.\n");
 			_cputs("Press any key to finish.\n");
 			_getch();
