@@ -2,20 +2,27 @@
 #include <conio.h>
 #include <algorithm>
 #include <iostream>
+static const int MAX_STR_LENGTH = 80;
 
 using std::sort;
 
 int main(int argc, char* argv[])
 {
 	HANDLE hNamedPipe;
+	char machineName[MAX_STR_LENGTH];
+	char pipeName[MAX_STR_LENGTH];
+
+	_cputs("Input the name of the server machine.\n");
+	_cscanf("%s", machineName);
+	_cprintf(pipeName, "\\\\%s\\pipe\\demo_pipe", machineName);
 
 	hNamedPipe = CreateFile(
-		argv[1],
+		pipeName,
 		GENERIC_WRITE | GENERIC_WRITE,
 		FILE_SHARE_READ | FILE_SHARE_WRITE,
 		(LPSECURITY_ATTRIBUTES)NULL,
 		OPEN_EXISTING,
-		0,
+		FILE_ATTRIBUTE_NORMAL,
 		(HANDLE)NULL
 	);
 
@@ -23,7 +30,7 @@ int main(int argc, char* argv[])
 	__int8 elem;
 	__int8* mass;
 	DWORD dwBytesRead;
-	if (!ReadFile(hNamedPipe, &n, sizeof(n), &dwBytesRead, NULL))
+	if (!ReadFile(hNamedPipe, &n, sizeof(n), &dwBytesRead, (LPOVERLAPPED)NULL))
 	{
 		_cputs("Read from the pipe failed.\n");
 		_cputs("Press any key to finish.\n");
@@ -34,7 +41,7 @@ int main(int argc, char* argv[])
 	mass = new __int8[n];
 	for (int i = 0; i < n; i++)
 	{
-		if (!ReadFile(hNamedPipe, &elem, sizeof(__int8), &dwBytesRead, NULL))
+		if (!ReadFile(hNamedPipe, &elem, sizeof(__int8), &dwBytesRead, (LPOVERLAPPED)NULL))
 		{
 			_cputs("Read from the pipe failed.\n");
 			_cputs("Press any key to finish.\n");
@@ -57,7 +64,7 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < n; i++)
 	{
 		DWORD dwBytesWritten;
-		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
+		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, (LPOVERLAPPED)NULL))
 		{
 			_cputs("Write to file failed.\n");
 			_cputs("Press any key to finish.\n");

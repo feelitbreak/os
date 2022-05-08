@@ -12,6 +12,8 @@ int main()
 	HANDLE hNamedPipe;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
+	SECURITY_ATTRIBUTES sa;
+	SECURITY_DESCRIPTOR sd;
 
 	int n;
 	__int8* mass;
@@ -25,16 +27,13 @@ int main()
 
 	strcpy(pipeName, "\\\\.\\pipe\\demo_pipe");
 
-	hNamedPipe = CreateNamedPipe(
-		pipeName,
-		PIPE_ACCESS_DUPLEX,
-		PIPE_TYPE_MESSAGE | PIPE_WAIT,
-		1,
-		0,
-		0,
-		INFINITE,
-		(LPSECURITY_ATTRIBUTES)NULL
-	);
+	sa.nLength = sizeof(sa);
+	sa.bInheritHandle = FALSE;
+	InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
+	SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
+	sa.lpSecurityDescriptor = &sd;
+
+	hNamedPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_WAIT, 1, 0, 0, INFINITE, &sa);
 	if (hNamedPipe == INVALID_HANDLE_VALUE)
 	{
 		_cputs("Create pipe failed.\n");
@@ -47,8 +46,7 @@ int main()
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
 
-	strcpy(lpszComLine, "Sort.exe ");
-	strcat(lpszComLine, pipeName);
+	strcpy(lpszComLine, "Sort.exe");
 
 	if (!CreateProcess(NULL, lpszComLine, NULL, NULL, TRUE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi))
@@ -64,7 +62,7 @@ int main()
 
 
 	DWORD dwBytesWritten;
-	if (!WriteFile(hNamedPipe, &n, sizeof(int), &dwBytesWritten, NULL))
+	if (!WriteFile(hNamedPipe, &n, sizeof(int), &dwBytesWritten, (LPOVERLAPPED)NULL))
 	{
 		CloseHandle(pi.hThread);
 		CloseHandle(pi.hProcess);
@@ -77,7 +75,7 @@ int main()
 	_cprintf("The size of the array %d has been written to the pipe.\n", n);
 	for (int i = 0; i < n; i++)
 	{
-		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
+		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, (LPOVERLAPPED)NULL))
 		{
 			CloseHandle(pi.hThread);
 			CloseHandle(pi.hProcess);
@@ -106,7 +104,7 @@ int main()
 	DWORD dwBytesRead;
 	for (int i = 0; i < n; i++)
 	{
-		if (!ReadFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesRead, NULL))
+		if (!ReadFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesRead, (LPOVERLAPPED)NULL))
 		{
 			CloseHandle(pi.hThread);
 			CloseHandle(pi.hProcess);
