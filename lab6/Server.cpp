@@ -7,11 +7,8 @@ static const int MAX_STR_LENGTH = 80;
 
 int main()
 {
-	char lpszComLine[MAX_STR_LENGTH];
 	char pipeName[MAX_STR_LENGTH];
 	HANDLE hNamedPipe;
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
 	SECURITY_ATTRIBUTES sa;
 	SECURITY_DESCRIPTOR sd;
 
@@ -33,7 +30,7 @@ int main()
 	SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
 	sa.lpSecurityDescriptor = &sd;
 
-	hNamedPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 0, 0, INFINITE, &sa);
+	hNamedPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, 1, 0, 0, INFINITE, &sa);
 	if (hNamedPipe == INVALID_HANDLE_VALUE)
 	{
 		_cputs("Create pipe failed.\n");
@@ -43,29 +40,19 @@ int main()
 		return GetLastError();
 	}
 
-	ZeroMemory(&si, sizeof(STARTUPINFO));
-	si.cb = sizeof(STARTUPINFO);
-
-	strcpy(lpszComLine, "Sort.exe");
-
-	if (!CreateProcess(NULL, lpszComLine, NULL, NULL, TRUE,
-		CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi))
+	_cputs("The server is waiting for connection with the client.\n");
+	if (!ConnectNamedPipe(hNamedPipe, NULL))
 	{
 		CloseHandle(hNamedPipe);
-		_cputs("The new process is not created.\n");
-		_cputs("Check the name of the process.\n");
+		_cputs("The connection failed.\n");
 		_cputs("Press any key to finish.\n");
 		_getch();
-		return 0;
+		return GetLastError();
 	}
-	_cputs("The new process is created.\n");
-
 
 	DWORD dwBytesWritten;
-	if (!WriteFile(hNamedPipe, &n, sizeof(int), &dwBytesWritten, (LPOVERLAPPED)NULL))
+	if (!WriteFile(hNamedPipe, &n, sizeof(int), &dwBytesWritten, NULL))
 	{
-		CloseHandle(pi.hThread);
-		CloseHandle(pi.hProcess);
 		CloseHandle(hNamedPipe);
 		_cputs("Write to file failed.\n");
 		_cputs("Press any key to finish.\n");
@@ -75,10 +62,8 @@ int main()
 	_cprintf("The size of the array %d has been written to the pipe.\n", n);
 	for (int i = 0; i < n; i++)
 	{
-		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, (LPOVERLAPPED)NULL))
+		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
 		{
-			CloseHandle(pi.hThread);
-			CloseHandle(pi.hProcess);
 			CloseHandle(hNamedPipe);
 			_cputs("Write to file failed.\n");
 			_cputs("Press any key to finish.\n");
@@ -89,25 +74,11 @@ int main()
 	}
 	_cputs("The process finished writing to the pipe.\n");
 
-	_cputs("The server is waiting for connection with the client.\n");
-	if (!ConnectNamedPipe(hNamedPipe, (LPOVERLAPPED)NULL))
-	{
-		CloseHandle(pi.hThread);
-		CloseHandle(pi.hProcess);
-		CloseHandle(hNamedPipe);
-		_cputs("The connection failed.\n");
-		_cputs("Press any key to finish.\n");
-		_getch();
-		return GetLastError();
-	}
-
 	DWORD dwBytesRead;
 	for (int i = 0; i < n; i++)
 	{
-		if (!ReadFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesRead, (LPOVERLAPPED)NULL))
+		if (!ReadFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesRead, NULL))
 		{
-			CloseHandle(pi.hThread);
-			CloseHandle(pi.hProcess);
 			CloseHandle(hNamedPipe);
 			_cputs("Read from the pipe failed.\n");
 			_cputs("Press any key to finish.\n");
@@ -118,12 +89,12 @@ int main()
 	}
 	_cputs("The process finished reading from the pipe.\n");
 
-	CloseHandle(hNamedPipe);
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
+	DisconnectNamedPipe(hNamedPipe);
 
 	_cputs("Press any key to exit.\n");
 	_getch();
+
+	CloseHandle(hNamedPipe);
 
 	return 0;
 }

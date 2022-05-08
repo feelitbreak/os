@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	__int8* mass;
 	DWORD dwBytesRead;
 
-	if (!ReadFile(hNamedPipe, &n, sizeof(n), &dwBytesRead, (LPOVERLAPPED)NULL))
+	if (!ReadFile(hNamedPipe, &n, sizeof(n), &dwBytesRead, NULL))
 	{
 		CloseHandle(hNamedPipe);
 		_cputs("Read from the pipe failed.\n");
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 	mass = new __int8[n];
 	for (int i = 0; i < n; i++)
 	{
-		if (!ReadFile(hNamedPipe, &elem, sizeof(__int8), &dwBytesRead, (LPOVERLAPPED)NULL))
+		if (!ReadFile(hNamedPipe, &elem, sizeof(__int8), &dwBytesRead, NULL))
 		{
 			CloseHandle(hNamedPipe);
 			_cputs("Read from the pipe failed.\n");
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < n; i++)
 	{
 		DWORD dwBytesWritten;
-		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, (LPOVERLAPPED)NULL))
+		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
 		{
 			CloseHandle(hNamedPipe);
 			_cputs("Write to file failed.\n");
