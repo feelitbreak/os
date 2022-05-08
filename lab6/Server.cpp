@@ -48,7 +48,7 @@ int main()
 	si.cb = sizeof(STARTUPINFO);
 
 	strcpy(lpszComLine, "Sort.exe ");
-	strcpy(lpszComLine, pipeName);
+	strcat(lpszComLine, pipeName);
 
 	if (!CreateProcess(NULL, lpszComLine, NULL, NULL, TRUE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi))
