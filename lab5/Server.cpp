@@ -1,18 +1,18 @@
 //Кендысь Алексей, 2 курс, 9 группа. Лабораторная №5
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <conio.h>
 #include <iostream>
-using namespace std;
 
 int main()
 {
 	int n;
-	cout << "Input the size of your mass." << endl;
-	cin >> n;
+	_cputs("Input the size of your mass.\n");
+	_cscanf("%d", &n);
 	__int8* mass = new __int8[n];
 	srand((__int8)time(NULL));
 	for (int i = 0; i < n; i++) {
-		mass[i] = (__int8)rand() % 20 - 10;
+		mass[i] = (__int8)rand() % ('z' - '0') + '0';
 	}
 	char lpszComLine[80];
 
@@ -44,9 +44,9 @@ int main()
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
 
-	wsprintf(lpszComLine, "Sort.exe %d %d", (int)hWritePipe, (int)hReadPipe);
+	sprintf(lpszComLine, "Sort.exe %d %d", (int)(hWritePipe), (int)(hReadPipe));
 
-	if (!CreateProcess(NULL, lpszComLine, NULL, NULL, FALSE,
+	if (!CreateProcess(NULL, lpszComLine, NULL, NULL, TRUE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi))
 	{
 		_cputs("The new process is not created.\n");
@@ -57,9 +57,6 @@ int main()
 	}
 	_cputs("The new process is created.\n");
 
-	// закрываем дескрипторы нового процесса
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
 
 	DWORD dwBytesWritten;
 	if (!WriteFile(hWritePipe, &n, sizeof(int), &dwBytesWritten, NULL))
@@ -68,7 +65,7 @@ int main()
 		_cputs("Press any key to finish.\n");
 		_getch();
 		return GetLastError();
-	}
+	}	
 	_cprintf("The size of the array %d has been written to the pipe.\n", n);
 	for (int i = 0; i < n; i++)
 	{
@@ -82,8 +79,9 @@ int main()
 		_cprintf("The element %c has been written to the pipe.\n", mass[i]);
 	}
 	_cputs("The process finished writing to the pipe.\n");
-
 	SetEvent(ReadyToRead1);
+
+
 
 
 	WaitForSingleObject(ReadyToRead2, INFINITE);
@@ -111,6 +109,8 @@ int main()
 	CloseHandle(hWritePipe);
 	CloseHandle(ReadyToRead1);
 	CloseHandle(ReadyToRead2);
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
 
 	_cputs("Press any key to exit.\n");
 	_getch();
