@@ -1,4 +1,4 @@
-//Кендысь Алексей, 2 курс, 9 группа. Лабораторная №5
+//Кендысь Алексей, 2 курс, 9 группа. Лабораторная №6
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <conio.h>
@@ -7,8 +7,8 @@ static const int MAX_STR_LENGTH = 80;
 
 int main()
 {
-	char pipeName[MAX_STR_LENGTH];
 	HANDLE hNamedPipe;
+	char pipeName[MAX_STR_LENGTH];
 	SECURITY_ATTRIBUTES sa;
 	SECURITY_DESCRIPTOR sd;
 
@@ -30,69 +30,69 @@ int main()
 	SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
 	sa.lpSecurityDescriptor = &sd;
 
-	hNamedPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, 1, 0, 0, INFINITE, &sa);
+	hNamedPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_DUPLEX, PIPE_READMODE_MESSAGE | PIPE_TYPE_MESSAGE | PIPE_WAIT, 1, 0, 0, INFINITE, &sa);
 	if (hNamedPipe == INVALID_HANDLE_VALUE)
 	{
 		_cputs("Create pipe failed.\n");
 		_cputs("Press any key to finish.\n");
-		_getch();
+		system("pause");
 
 		return GetLastError();
 	}
 
 	_cputs("The server is waiting for connection with the client.\n");
-	if (!ConnectNamedPipe(hNamedPipe, NULL))
+	if (!ConnectNamedPipe(hNamedPipe, (LPOVERLAPPED)NULL))
 	{
 		CloseHandle(hNamedPipe);
 		_cputs("The connection failed.\n");
-		_cputs("Press any key to finish.\n");
-		_getch();
+		system("pause");
+
 		return GetLastError();
 	}
 
+
 	DWORD dwBytesWritten;
-	if (!WriteFile(hNamedPipe, &n, sizeof(int), &dwBytesWritten, NULL))
+	if (!WriteFile(hNamedPipe, &n, sizeof(int), &dwBytesWritten, (LPOVERLAPPED)NULL))
 	{
 		CloseHandle(hNamedPipe);
 		_cputs("Write to file failed.\n");
-		_cputs("Press any key to finish.\n");
-		_getch();
+		system("pause");
+
 		return GetLastError();
 	}	
 	_cprintf("The size of the array %d has been written to the pipe.\n", n);
 	for (int i = 0; i < n; i++)
 	{
-		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
+		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, (LPOVERLAPPED)NULL))
 		{
 			CloseHandle(hNamedPipe);
 			_cputs("Write to file failed.\n");
-			_cputs("Press any key to finish.\n");
-			_getch();
+			system("pause");
+
 			return GetLastError();
 		}
 		_cprintf("The element %c has been written to the pipe.\n", mass[i]);
 	}
 	_cputs("The process finished writing to the pipe.\n");
 
+
 	DWORD dwBytesRead;
 	for (int i = 0; i < n; i++)
 	{
-		if (!ReadFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesRead, NULL))
+		if (!ReadFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesRead, (LPOVERLAPPED)NULL))
 		{
 			CloseHandle(hNamedPipe);
 			_cputs("Read from the pipe failed.\n");
-			_cputs("Press any key to finish.\n");
-			_getch();
+			system("pause");
+
 			return GetLastError();
 		}
 		_cprintf("The element %c has been read from the pipe.\n", mass[i]);
 	}
 	_cputs("The process finished reading from the pipe.\n");
 
-	DisconnectNamedPipe(hNamedPipe);
-
 	_cputs("Press any key to exit.\n");
-	_getch();
+	system("pause");
 
 	CloseHandle(hNamedPipe);
 
