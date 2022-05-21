@@ -21,7 +21,7 @@ int main()
 
 	handles = new HANDLE[nProd + nCons];
 
-	hSemaphoreProd = CreateSemaphore(NULL, size, size, "SemaphoreProd");
+	hSemaphoreProd = CreateSemaphore(NULL, 0, size, "SemaphoreProd");
 	if (hSemaphoreProd == NULL)
 	{
 		cout << "Create semaphore failed. Press any key to exit." << endl;
@@ -55,6 +55,8 @@ int main()
 		if (handles[i] == NULL)
 			return GetLastError();
 	}
+
+	ReleaseSemaphore(hSemaphoreProd, size, NULL);
 
 	WaitForMultipleObjects(nProd + nCons, handles, TRUE, INFINITE);
 
