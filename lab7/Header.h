@@ -19,14 +19,19 @@ public:
 	char Pop();
 };
 
-class ElementsToProduce
+class Info
 {
 public:
 	short* massElem;
 	int nElem;
 	MonitorStack& stack;
 
-	ElementsToProduce(int n, short* mass, MonitorStack& _stack) : stack(_stack)
+	Info(int n, MonitorStack& _stack) : stack(_stack)
+	{
+		nElem = n;
+	}
+
+	Info(int n, short* mass, MonitorStack& _stack) : stack(_stack)
 	{
 		nElem = n;
 		massElem = mass;
@@ -34,3 +39,5 @@ public:
 };
 
 DWORD WINAPI producer(LPVOID par);
+
+DWORD WINAPI consumer(LPVOID par);

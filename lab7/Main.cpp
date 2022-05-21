@@ -50,9 +50,19 @@ int main()
 			cin >> massElem[j];
 		}
 
-		ElementsToProduce* prodInput = new ElementsToProduce(nElem, massElem, stack);
+		Info* prodInput = new Info(nElem, massElem, stack);
 		handles[i] = CreateThread(NULL, 0, producer, (void*)prodInput, 0, &IDProducer);
 		if (handles[i] == NULL)
+			return GetLastError();
+	}
+
+	for (int i = 0; i < nCons; i++) {
+		cout << "Input the amount of elements for consumer " << i + 1 << "." << endl;
+		cin >> nElem;
+
+		Info* consInput = new Info(nElem, stack);
+		handles[i + nProd] = CreateThread(NULL, 0, producer, (void*)consInput, 0, &IDConsumer);
+		if (handles[i + nProd] == NULL)
 			return GetLastError();
 	}
 
