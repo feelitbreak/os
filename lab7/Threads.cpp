@@ -63,7 +63,7 @@ DWORD WINAPI consumer(LPVOID par) {
 		return GetLastError();
 	}
 
-	short elem;
+	char elem;
 	for (int i = 0; i < n; i++) {
 		WaitForSingleObject(hSemaphoreCons, INFINITE);
 		elem = stack.Pop();

@@ -61,7 +61,7 @@ int main()
 		cin >> nElem;
 
 		Info* consInput = new Info(nElem, stack);
-		handles[i + nProd] = CreateThread(NULL, 0, producer, (void*)consInput, 0, &IDConsumer);
+		handles[i + nProd] = CreateThread(NULL, 0, consumer, (void*)consInput, 0, &IDConsumer);
 		if (handles[i + nProd] == NULL)
 			return GetLastError();
 	}

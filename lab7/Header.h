@@ -29,6 +29,7 @@ public:
 	Info(int n, MonitorStack& _stack) : stack(_stack)
 	{
 		nElem = n;
+		massElem = NULL;
 	}
 
 	Info(int n, short* mass, MonitorStack& _stack) : stack(_stack)
