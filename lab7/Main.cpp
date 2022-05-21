@@ -38,12 +38,16 @@ int main()
 		return GetLastError();
 	}
 
+	int sumProd = 0;
+	int sumCons = 0;
+
 	int nElem;
 	short* massElem;
 	for (int i = 0; i < nProd; i++) 
 	{
 		cout << "Input the amount of elements for producer " << i + 1 << "." << endl;
 		cin >> nElem;
+		sumProd += nElem;
 		massElem = new short[nElem];
 		cout << "Input the elements for producer " << i + 1 << "." << endl;
 		for (int j = 0; j < nElem; j++) {
@@ -59,6 +63,7 @@ int main()
 	for (int i = 0; i < nCons; i++) {
 		cout << "Input the amount of elements for consumer " << i + 1 << "." << endl;
 		cin >> nElem;
+		sumCons += nElem;
 
 		Info* consInput = new Info(nElem, stack);
 		handles[i + nProd] = CreateThread(NULL, 0, consumer, (void*)consInput, 0, &IDConsumer);
@@ -66,6 +71,28 @@ int main()
 			return GetLastError();
 	}
 
+	if (sumProd < sumCons) 
+	{
+		cout << "Error. Too many products to consume." << endl;
+		CloseHandle(hSemaphoreCons);
+		CloseHandle(hSemaphoreProd);
+		for (int i = nProd + nCons - 1; i >= 0; i--)
+		{
+			CloseHandle(handles[i]);
+		}
+
+		return 0;
+	} else if(sumProd > sumCons + size) {
+		cout << "Error. Not enough space in the stack." << endl;
+		CloseHandle(hSemaphoreCons);
+		CloseHandle(hSemaphoreProd);
+		for (int i = nProd + nCons - 1; i >= 0; i--)
+		{
+			CloseHandle(handles[i]);
+		}
+
+		return 0;
+	}
 	ReleaseSemaphore(hSemaphoreProd, size, NULL);
 
 	WaitForMultipleObjects(nProd + nCons, handles, TRUE, INFINITE);
