@@ -31,7 +31,6 @@ public:
 		nElem = n;
 		massElem = mass;
 	}
-
 };
 
 DWORD WINAPI producer(LPVOID par);

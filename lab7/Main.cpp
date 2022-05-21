@@ -5,11 +5,10 @@
 int main()
 {
 	DWORD IDProducer, IDConsumer;
+	HANDLE hSemaphoreProd, hSemaphoreCons;
 	int size;
 	int nProd, nCons;
 	HANDLE* handles;
-
-	setlocale(LC_ALL, "rus");
 
 	cout << "Input stack size." << endl;
 	cin >> size;
@@ -21,6 +20,23 @@ int main()
 	cin >> nCons;
 
 	handles = new HANDLE[nProd + nCons];
+
+	hSemaphoreProd = CreateSemaphore(NULL, size, size, "SemaphoreProd");
+	if (hSemaphoreProd == NULL)
+	{
+		cout << "Create semaphore failed. Press any key to exit." << endl;
+		cin.get();
+		return GetLastError();
+	}
+
+	hSemaphoreCons = CreateSemaphore(NULL, 0, size, "SemaphoreCons");
+	if (hSemaphoreCons == NULL)
+	{
+		cout << "Create semaphore failed. Press any key to exit." << endl;
+		cin.get();
+		CloseHandle(hSemaphoreProd);
+		return GetLastError();
+	}
 
 	int nElem;
 	short* massElem;
@@ -34,14 +50,17 @@ int main()
 			cin >> massElem[j];
 		}
 
-		ElementsToProduce* prodInput = new ElementsToProduce(nElem, massElem);
+		ElementsToProduce* prodInput = new ElementsToProduce(nElem, massElem, stack);
 		handles[i] = CreateThread(NULL, 0, producer, (void*)prodInput, 0, &IDProducer);
 		if (handles[i] == NULL)
 			return GetLastError();
 	}
 
 	WaitForMultipleObjects(nProd + nCons, handles, TRUE, INFINITE);
-	for(int i = 0; i < nProd + nCons; i++)
+
+	CloseHandle(hSemaphoreCons);
+	CloseHandle(hSemaphoreProd);
+	for(int i = nProd + nCons - 1; i >= 0; i--)
 	{
 		CloseHandle(handles[i]);
 	}

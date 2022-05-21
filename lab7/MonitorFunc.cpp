@@ -1,4 +1,5 @@
 #include "Header.h"
+
 MonitorStack::MonitorStack(int nSize) {
 	size = nSize;
 	mass = new short[nSize];
@@ -7,12 +8,6 @@ MonitorStack::MonitorStack(int nSize) {
 
 MonitorStack::~MonitorStack() {
 	delete[] mass;
-};
-
-MonitorStack::MonitorStack(int nSize) {
-	size = nSize;
-	mass = new short[nSize];
-	n = 0;
 };
 
 void MonitorStack::Push(short& nElement) {
@@ -27,4 +22,5 @@ char MonitorStack::Pop() {
 		n--;
 		return mass[n];
 	}
+	return 0;
 }
