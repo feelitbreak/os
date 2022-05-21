@@ -1,3 +1,11 @@
+#include <windows.h>
+#include <iostream>
+#include <ctime>
+#include <process.h>
+using std::cin;
+using std::cout;
+using std::endl;
+
 class MonitorStack
 {
 private:
@@ -11,15 +19,19 @@ public:
 	char Pop();
 };
 
-struct ElementsToProduce
+class ElementsToProduce
 {
-private:
+public:
 	short* massElem;
 	int nElem;
-public:
-	ElementsToProduce(int n, short* mass) {
+	MonitorStack& stack;
+
+	ElementsToProduce(int n, short* mass, MonitorStack& _stack) : stack(_stack)
+	{
 		nElem = n;
 		massElem = mass;
 	}
 
 };
+
+DWORD WINAPI producer(LPVOID par);

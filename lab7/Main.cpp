@@ -1,16 +1,6 @@
 //Кендысь Алексей, 2 курс, 9 группа. Лабораторная №7
 
-#include <windows.h>
-#include <iostream>
-#include <ctime>
-#include <process.h>
 #include "Header.h"
-using namespace std;
-
-DWORD WINAPI producer(LPVOID par)
-{
-	
-}
 
 int main()
 {
@@ -51,7 +41,7 @@ int main()
 	}
 
 	WaitForMultipleObjects(nProd + nCons, handles, TRUE, INFINITE);
-	for (int i = 0; i < nProd + nCons; i++)
+	for(int i = 0; i < nProd + nCons; i++)
 	{
 		CloseHandle(handles[i]);
 	}
