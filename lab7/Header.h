@@ -16,7 +16,7 @@ public:
 	MonitorStack(int nSize);
 	~MonitorStack();
 	void Push(short& nElement);
-	char Pop();
+	short Pop();
 };
 
 class Info

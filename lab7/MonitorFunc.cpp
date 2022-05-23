@@ -17,7 +17,7 @@ void MonitorStack::Push(short& nElement) {
 	}
 }
 
-char MonitorStack::Pop() {
+short MonitorStack::Pop() {
 	if (n > 0) {
 		n--;
 		return mass[n];

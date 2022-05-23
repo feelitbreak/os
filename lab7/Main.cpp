@@ -5,7 +5,7 @@
 int main()
 {
 	DWORD IDProducer, IDConsumer;
-	HANDLE hSemaphoreProd, hSemaphoreCons;
+	HANDLE hSemaphoreProd, hSemaphoreCons, hMutex;
 	int size;
 	int nProd, nCons;
 	HANDLE* handles;
@@ -35,6 +35,16 @@ int main()
 		cout << "Create semaphore failed. Press any key to exit." << endl;
 		cin.get();
 		CloseHandle(hSemaphoreProd);
+		return GetLastError();
+	}
+
+	hMutex = CreateMutex(NULL, FALSE, "Mutex");
+	if (hMutex == NULL)
+	{
+		cout << "Create mutex failed." << endl;
+		cout << "Press any key to exit." << endl;
+		cin.get();
+
 		return GetLastError();
 	}
 
@@ -97,6 +107,7 @@ int main()
 
 	WaitForMultipleObjects(nProd + nCons, handles, TRUE, INFINITE);
 
+	CloseHandle(hMutex);
 	CloseHandle(hSemaphoreCons);
 	CloseHandle(hSemaphoreProd);
 	for(int i = nProd + nCons - 1; i >= 0; i--)
