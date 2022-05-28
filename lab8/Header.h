@@ -7,8 +7,8 @@ using std::cin;
 using std::endl;
 
 static int const N = 5;
-static int const ThinkingTime = 300;
-static int const EatingTime = 250;
+static int const ThinkingTime = 0;
+static int const EatingTime = 0;
 
 extern HANDLE forks[N];
 extern HANDLE hMutex;

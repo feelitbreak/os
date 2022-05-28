@@ -29,8 +29,8 @@ void eat(int i) {
 void takeForks(int i) {
 	int leftFork = i;
 	int rightFork = (i + 1) % N;
-	HANDLE iForks[2] = { forks[leftFork], forks[rightFork] };
-	WaitForMultipleObjects(2, iForks, TRUE, INFINITE);
+	WaitForSingleObject(forks[leftFork], INFINITE);
+	WaitForSingleObject(forks[rightFork], INFINITE);
 }
 
 void putForks(int i) {
