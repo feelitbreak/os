@@ -11,6 +11,7 @@ static int const ThinkingTime = 300;
 static int const EatingTime = 250;
 
 extern HANDLE forks[N];
+extern HANDLE hMutex;
 
 struct Singleton {
 	int i;

@@ -3,6 +3,7 @@
 #include "Header.h"
 
 HANDLE forks[N];
+HANDLE hMutex;
 
 int main()
 {
@@ -21,6 +22,18 @@ int main()
 		forks[i] = hSemaphore;
 	}
 
+	hMutex = CreateMutex(NULL, FALSE, NULL);
+	if (hMutex == NULL)
+	{
+		cout << "Create mutex failed. Press any key to exit." << endl;
+		cin.get();
+
+		for (int k = N - 1; k >= 0; k--) {
+			CloseHandle(forks[k]);
+		}
+		return GetLastError();
+	}
+
 	for (int i = 0; i < N; i++)
 	{
 		Singleton* par = new Singleton(i);
@@ -30,6 +43,7 @@ int main()
 			cout << "Create thread failed. Press any key to exit." << endl;
 			cin.get();
 
+			CloseHandle(hMutex);
 			for (int k = N - 1; k >= 0; k--) {
 				CloseHandle(forks[k]);
 			}

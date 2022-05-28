@@ -5,20 +5,24 @@ DWORD WINAPI philosopher(LPVOID par) {
 	int i = ((Singleton*) par)->i;
 
 	while (1) {
-		think(i);
 		takeForks(i);
 		eat(i);
 		putForks(i);
+		think(i);
 	}
 }
 
 void think(int i) {
+	WaitForSingleObject(hMutex, INFINITE);
 	cout << "Philosopher" << i + 1 << " is thinking." << endl;
+	ReleaseMutex(hMutex);
 	Sleep(ThinkingTime);
 }
 
 void eat(int i) {
+	WaitForSingleObject(hMutex, INFINITE);
 	cout << "Philosopher" << i + 1 << " is eating." << endl;
+	ReleaseMutex(hMutex);
 	Sleep(EatingTime);
 }
 
