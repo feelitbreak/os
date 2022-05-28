@@ -7,8 +7,9 @@ using std::cin;
 using std::endl;
 
 static int const N = 5;
-static int const ThinkingTime = 0;
-static int const EatingTime = 0;
+static int const ThinkingTime = 300;
+static int const EatingTime = 250;
+static int const TimeToSeparate = 1;
 
 extern HANDLE forks[N];
 extern HANDLE hMutex;
@@ -27,4 +28,5 @@ DWORD WINAPI philosopher(LPVOID par);
 void think(int i);
 void eat(int i);
 void takeForks(int i);
+void takeForksReverse(int i);
 void putForks(int i);

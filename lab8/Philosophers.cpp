@@ -1,11 +1,17 @@
-
 #include "Header.h"
 
 DWORD WINAPI philosopher(LPVOID par) {
 	int i = ((Singleton*) par)->i;
 
 	while (1) {
-		takeForks(i);
+		if (i != N - 1)
+		{
+			takeForks(i);
+		}
+		else
+		{
+			takeForksReverse(i);
+		}
 		eat(i);
 		putForks(i);
 		think(i);
@@ -30,7 +36,16 @@ void takeForks(int i) {
 	int leftFork = i;
 	int rightFork = (i + 1) % N;
 	WaitForSingleObject(forks[leftFork], INFINITE);
+	Sleep(TimeToSeparate);
 	WaitForSingleObject(forks[rightFork], INFINITE);
+}
+
+void takeForksReverse(int i) {
+	int leftFork = i;
+	int rightFork = (i + 1) % N;
+	WaitForSingleObject(forks[rightFork], INFINITE);
+	Sleep(TimeToSeparate);
+	WaitForSingleObject(forks[leftFork], INFINITE);
 }
 
 void putForks(int i) {
