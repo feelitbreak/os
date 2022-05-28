@@ -10,10 +10,20 @@ static int const N = 5;
 static int const ThinkingTime = 300;
 static int const EatingTime = 250;
 
-HANDLE forks[N];
+extern HANDLE forks[N];
+
+struct Singleton {
+	int i;
+
+	Singleton(int i) 
+	{
+		this->i = i;
+	}
+};
 
 DWORD WINAPI philosopher(LPVOID par);
 
 void think(int i);
-
 void eat(int i);
+void takeForks(int i);
+void putForks(int i);

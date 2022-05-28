@@ -2,6 +2,8 @@
 
 #include "Header.h"
 
+HANDLE forks[N];
+
 int main()
 {
 	DWORD IDPhilosopher;
@@ -21,24 +23,19 @@ int main()
 
 	for (int i = 0; i < N; i++)
 	{
-		philosophers[i] = CreateThread(NULL, 0, philosopher, (void*) i, 0, &IDPhilosopher);
+		Singleton* par = new Singleton(i);
+		philosophers[i] = CreateThread(NULL, 0, philosopher, (void*) par, 0, &IDPhilosopher);
 		if (philosophers[i] == NULL)
 		{
 			cout << "Create thread failed. Press any key to exit." << endl;
 			cin.get();
 
-			for (int j = N - 1; j >= 0; j--) {
-				CloseHandle(forks[j]);
+			for (int k = N - 1; k >= 0; k--) {
+				CloseHandle(forks[k]);
 			}
 			return GetLastError();
 		}
 	}
 
-	
-	for (int i = N - 1; i >= 0; i--) {
-		CloseHandle(philosophers[i]);
-	}
-	for (int i = N - 1; i >= 0; i--) {
-		CloseHandle(forks[i]);
-	}
+	Sleep(INFINITE);
 }
