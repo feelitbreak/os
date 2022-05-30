@@ -10,9 +10,10 @@ static int const N = 5;
 static int const ThinkingTime = 300;
 static int const EatingTime = 250;
 static int const TimeToSeparate = 1;
+static int const OverallTime = 5000;
 
 extern HANDLE forks[N];
-extern HANDLE hMutex;
+extern CRITICAL_SECTION cs;
 
 struct Singleton {
 	int i;

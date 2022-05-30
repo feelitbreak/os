@@ -3,7 +3,7 @@
 #include "Header.h"
 
 HANDLE forks[N];
-HANDLE hMutex;
+CRITICAL_SECTION cs;
 
 int main()
 {
@@ -22,17 +22,7 @@ int main()
 		forks[i] = hSemaphore;
 	}
 
-	hMutex = CreateMutex(NULL, FALSE, NULL);
-	if (hMutex == NULL)
-	{
-		cout << "Create mutex failed. Press any key to exit." << endl;
-		cin.get();
-
-		for (int k = N - 1; k >= 0; k--) {
-			CloseHandle(forks[k]);
-		}
-		return GetLastError();
-	}
+	InitializeCriticalSection(&cs);
 
 	for (int i = 0; i < N; i++)
 	{
@@ -43,7 +33,7 @@ int main()
 			cout << "Create thread failed. Press any key to exit." << endl;
 			cin.get();
 
-			CloseHandle(hMutex);
+			DeleteCriticalSection(&cs);
 			for (int k = N - 1; k >= 0; k--) {
 				CloseHandle(forks[k]);
 			}
@@ -51,5 +41,13 @@ int main()
 		}
 	}
 
-	Sleep(INFINITE);
+	Sleep(OverallTime);
+
+	for (int i = N - 1; i >= 0; i--) {
+		CloseHandle(philosophers[i]);
+	}
+	DeleteCriticalSection(&cs);
+	for (int i = N - 1; i >= 0; i--) {
+		CloseHandle(forks[i]);
+	}
 }
