@@ -34,7 +34,7 @@ struct Mass {
 Mass* input();
 double countAvrg(int k, char* A);
 void outMass(int start, int n, char* A);
-void outRes(int avrg, int k, int n, char* A);
+void outRes(double avrg, int k, int n, char* A);
 
 void sort(int n, char* A, long sleep);
 

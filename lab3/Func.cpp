@@ -20,8 +20,8 @@ void outMass(int start, int n, char* A)
 	cout << endl;
 }
 
-void outRes(int avrg, int k, int n, char* A) {
-	cout << "Result average = " << avrg << endl;
+void outRes(double avrg, int k, int n, char* A) {
+	cout << "Result average = " << static_cast<int>(avrg) << endl;
 	cout << "Result mass from k position: ";
 	outMass(k, n, A);
 }
