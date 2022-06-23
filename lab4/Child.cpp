@@ -1,7 +1,9 @@
 #include <windows.h>
 #include <iostream>
 
-using namespace std;
+using std::cin;
+using std::cout;
+using std::endl;
 
 int main(int argc, char* argv[])
 {
@@ -10,24 +12,37 @@ int main(int argc, char* argv[])
 	HANDLE hMutex;
 
 	hMutex = OpenMutex(SYNCHRONIZE, FALSE, "ChildMutex");
-	if (hMutex == NULL)
+	if (NULL == hMutex)
 	{
-		cout << "Open mutex failed." << endl;
-		cout << "Press any key to exit." << endl;
-		cin.get();
-
+		cout << "Error. Failed to open mutex." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	HANDLE EventB = OpenEvent(EVENT_MODIFY_STATE, FALSE, "B");
-	if (EventB == NULL)
+	if (NULL == EventB)
+	{
+		CloseHandle(hMutex);
+
+		cout << "Error. Failed to open event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 	HANDLE EventEndChild = OpenEvent(SYNCHRONIZE, FALSE, "EndChild");
-	if (EventEndChild == NULL)
+	if (NULL == EventEndChild)
+	{
+		CloseHandle(EventB);
+		CloseHandle(hMutex);
+
+		cout << "Error. Failed to open event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 
 	WaitForSingleObject(hMutex, INFINITE);
-	cout << "I am active.\n";
+
+	cout << "I am active." << endl;
+
 	char mes;
 	for (int i = 0; i < n; i++) {
 		cout << "Input message." << endl;
@@ -47,8 +62,9 @@ int main(int argc, char* argv[])
 	
 	WaitForSingleObject(EventEndChild, INFINITE);
 
-	CloseHandle(hMutex);
 	CloseHandle(EventEndChild);
+	CloseHandle(EventB);
+	CloseHandle(hMutex);
 
 	return 0;
 }

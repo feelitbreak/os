@@ -1,46 +1,95 @@
 //Кендысь Алексей, 2 курс, 9 группа. Лабораторная №4
-#define _CRT_SECURE_NO_WARNINGS
+
 #include <windows.h>
 #include <iostream>
 
-using namespace std;
+using std::cin;
+using std::cout;
+using std::endl;
+
+static const int maxLength = 255;
+static const int radix = 10;
+static const int initCount = 1;
+static const int maxCount = 1;
 
 HANDLE EventA, EventB, EventEndChild, EventEndParent;
+
+char* formCommandLine(char* name, int nMes, char* buff) 
+{
+	char* commandLine = new char[maxLength];
+	strcpy_s(commandLine, maxLength, name);
+	_itoa_s(nMes, buff, maxLength, radix);
+	buff[maxLength - 1] = '\0';
+	strcat_s(commandLine, maxLength, buff);
+	return commandLine;
+}
 
 int main()
 {
 	EventA = CreateEvent(NULL, FALSE, FALSE, "A");
-	if (EventA == NULL)
+	if (NULL == EventA)
+	{
+		cout << "Error. Couldn't create event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 	EventB = CreateEvent(NULL, FALSE, FALSE, "B");
-	if (EventB == NULL)
+	if (NULL == EventB)
+	{
+		CloseHandle(EventA);
+
+		cout << "Error. Couldn't create event." << endl;
+		system("pause");
 		return GetLastError();
-	EventEndChild = CreateEvent(NULL, FALSE, FALSE, "EndChild");
-	if (EventEndChild == NULL)
+	}
+	EventEndChild = CreateEvent(NULL, TRUE, FALSE, "EndChild");
+	if (NULL == EventEndChild)
+	{
+		CloseHandle(EventB);
+		CloseHandle(EventA);
+
+		cout << "Error. Couldn't create event." << endl;
+		system("pause");
 		return GetLastError();
-	EventEndParent = CreateEvent(NULL, FALSE, FALSE, "EndParent");
-	if (EventEndParent == NULL)
+	}
+	EventEndParent = CreateEvent(NULL, TRUE, FALSE, "EndParent");
+	if (NULL == EventEndParent)
+	{
+		CloseHandle(EventEndChild);
+		CloseHandle(EventB);
+		CloseHandle(EventA);
+
+		cout << "Error. Couldn't create event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 
 	HANDLE hSemaphore;
-	hSemaphore = CreateSemaphore(NULL, 1, 1, "ParentSemaphore");
-	if (hSemaphore == NULL)
+	hSemaphore = CreateSemaphore(NULL, initCount, maxCount, "ParentSemaphore");
+	if (NULL == hSemaphore)
 	{
-		cout << "Create semaphore failed." << endl;
-		cout << "Press any key to exit." << endl;
-		cin.get();
+		CloseHandle(EventEndParent);
+		CloseHandle(EventEndChild);
+		CloseHandle(EventB);
+		CloseHandle(EventA);
 
+		cout << "Error. Couldn't create semaphore." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	HANDLE	hMutex;
 	hMutex = CreateMutex(NULL, FALSE, "ChildMutex");
-	if (hMutex == NULL)
+	if (NULL == hMutex)
 	{
-		cout << "Create mutex failed." << endl;
-		cout << "Press any key to exit." << endl;
-		cin.get();
+		CloseHandle(hSemaphore);
+		CloseHandle(EventEndParent);
+		CloseHandle(EventEndChild);
+		CloseHandle(EventB);
+		CloseHandle(EventA);
 
+		cout << "Error. Couldn't create mutex." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
@@ -56,50 +105,75 @@ int main()
 	cout << "Input the amount of Child messages." << endl;
 	cin >> nMes2;
 
-	char buff[256];
-	char* ParentLine = new char[255];
-	strcpy(ParentLine, "Parent.exe ");
-	strcat(ParentLine, _itoa(nMes1, buff, 10));
-	char* ChildLine = new char[255];
-	strcpy(ChildLine, "Child.exe ");
-	strcat(ChildLine, _itoa(nMes2, buff, 10));
+	char buff[maxLength];
+	char* ParentLine = formCommandLine(const_cast <char*>("Parent.exe "), nMes1, buff);
+	char* ChildLine = formCommandLine(const_cast <char*>("Child.exe "), nMes2, buff);
 
-	HANDLE* hMass = new HANDLE[nPr1 + nPr2];
+	int n = nPr1 + nPr2;
+	HANDLE* hMassProcess = new HANDLE[n];
+	HANDLE* hMassThread = new HANDLE[n];
 
-	for (int i = 0; i < nPr1; i++) 
+	for (int i = 0; i < nPr1 && i < n; i++) 
 	{
 		STARTUPINFO	siParent;
 		PROCESS_INFORMATION	piParent;
+
 		ZeroMemory(&siParent, sizeof(STARTUPINFO));
 		siParent.cb = sizeof(STARTUPINFO);
-		if (!CreateProcess(NULL, ParentLine, NULL, NULL, FALSE,
+
+		if (NULL == CreateProcess(NULL, ParentLine, NULL, NULL, FALSE,
 			CREATE_NEW_CONSOLE, NULL, NULL, &siParent, &piParent))
 		{
-			cout << "The new process Parent is not created." << endl;
-			cout << "Press any key to exit." << endl;
-			cin.get();
+			for (int j = i - 1; j >= 0; j--)
+			{
+				CloseHandle(hMassThread[j]);
+				CloseHandle(hMassProcess[j]);
+			}
 
+			CloseHandle(hMutex);
+			CloseHandle(hSemaphore);
+			CloseHandle(EventEndParent);
+			CloseHandle(EventEndChild);
+			CloseHandle(EventB);
+			CloseHandle(EventA);
+
+			cout << "Error. Failed to create Parent process." << endl;
+			system("pause");
 			return GetLastError();
 		}
-		hMass[i] = piParent.hProcess;
+		hMassProcess[i] = piParent.hProcess;
+		hMassThread[i] = piParent.hThread;
 	}
 
-	for (int i = 0; i < nPr2; i++)
+	for (int i = nPr1; i < n; i++)
 	{
 		STARTUPINFO	siChild;
 		PROCESS_INFORMATION	piChild;
 		ZeroMemory(&siChild, sizeof(STARTUPINFO));
 		siChild.cb = sizeof(STARTUPINFO);
-		if (!CreateProcess(NULL, ChildLine, NULL, NULL, FALSE,
+		if (NULL == CreateProcess(NULL, ChildLine, NULL, NULL, FALSE,
 			CREATE_NEW_CONSOLE, NULL, NULL, &siChild, &piChild))
 		{
-			cout << "The new process Child is not created." << endl;
-			cout << "Press any key to exit." << endl;
-			cin.get();
+			for (int j = i - 1; j >= 0; j--)
+			{
+				CloseHandle(hMassThread[j]);
+				CloseHandle(hMassProcess[j]);
+			}
 
+			CloseHandle(hMutex);
+			CloseHandle(hSemaphore);
+			CloseHandle(EventEndParent);
+			CloseHandle(EventEndChild);
+			CloseHandle(EventB);
+			CloseHandle(EventA);
+
+			cout << "Error. Failed to create Child process." << endl;
+			system("pause");
 			return GetLastError();
 		}
-		hMass[nPr1 + i] = piChild.hProcess;
+
+		hMassProcess[i] = piChild.hProcess;
+		hMassThread[i] = piChild.hThread;
 	}
 
 	HANDLE mass[] = {EventA, EventB};
@@ -108,13 +182,11 @@ int main()
 		int ind = WaitForMultipleObjects(2, mass, FALSE, INFINITE) - WAIT_OBJECT_0;
 		if(ind == 0) 
 		{
-			cout << "Message A by Parent\n";
-			ResetEvent(EventA);
+			cout << "Message A by Parent" << endl;
 		}
 		if(ind == 1)
 		{
-			cout << "Message B by Child\n";
-			ResetEvent(EventB); 
+			cout << "Message B by Child" << endl;
 		}
 	}
 
@@ -122,14 +194,19 @@ int main()
 
 	SetEvent(EventEndParent);
 	SetEvent(EventEndChild);
-	
-	CloseHandle(EventA);
-	CloseHandle(EventB);
 
-	for (int i = 0; i < nPr1 + nPr2; i++) 
+	for (int i = n - 1; i >= 0; i--) 
 	{
-		CloseHandle(hMass[i]);
+		CloseHandle(hMassThread[i]);
+		CloseHandle(hMassProcess[i]);
 	}
+
+	CloseHandle(hMutex);
+	CloseHandle(hSemaphore);
+	CloseHandle(EventEndParent);
+	CloseHandle(EventEndChild);
+	CloseHandle(EventB);
+	CloseHandle(EventA);
 
 	return 0;
 }

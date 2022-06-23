@@ -1,8 +1,9 @@
 #include <windows.h>
 #include <iostream>
-#include <string>
 
-using namespace std;
+using std::cin;
+using std::cout;
+using std::endl;
 
 int main(int argc, char* argv[])
 {
@@ -10,24 +11,36 @@ int main(int argc, char* argv[])
 
 	HANDLE hSemaphore;
 	hSemaphore = OpenSemaphore(SEMAPHORE_ALL_ACCESS, FALSE, "ParentSemaphore");
-	if (hSemaphore == NULL)
+	if (NULL == hSemaphore)
 	{
-		cout << "Open semaphore failed." << endl;
-		cout << "Press any key to exit." << endl;
-		cin.get();
-
+		cout << "Error. Failed to open semaphore." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	HANDLE EventA = OpenEvent(EVENT_MODIFY_STATE, FALSE, "A");
-	if (EventA == NULL)
+	if (NULL == EventA)
+	{
+		CloseHandle(hSemaphore);
+
+		cout << "Error. Failed to open event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 	HANDLE EventEndParent = OpenEvent(SYNCHRONIZE, FALSE, "EndParent");
-	if (EventEndParent == NULL)
+	if (NULL == EventEndParent)
+	{
+		CloseHandle(EventA);
+		CloseHandle(hSemaphore);
+
+		cout << "Error. Failed to open event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 
 	WaitForSingleObject(hSemaphore, INFINITE);
 	cout << "I am active.\n";
+
 	char mes;
 	for (int i = 0; i < n; i++) {
 		cout << "Input message." << endl;
@@ -43,12 +56,14 @@ int main(int argc, char* argv[])
 	}
 
 	ReleaseSemaphore(hSemaphore, 1, NULL);
+
 	cout << "Waiting for other processes.\n";
 
 	WaitForSingleObject(EventEndParent, INFINITE);
 
-	CloseHandle(hSemaphore);
 	CloseHandle(EventEndParent);
+	CloseHandle(EventA);
+	CloseHandle(hSemaphore);
 
 	return 0;
 }
