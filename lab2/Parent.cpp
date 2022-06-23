@@ -1,22 +1,28 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <iostream>
-#include <string>
-#include <ctime>
-#include <conio.h>
-using namespace std;
 
-int main()
-{
-	setlocale(LC_ALL, "rus");
-	char* buff = new char[256];
-	string a = "Child.exe";
+using std::cin;
+using std::cout;
+using std::endl;
+using std::string;
+
+static int const radix = 10;
+static int const maxStrLength = 255;
+static int const bufferHeight = 50;
+
+char* input() {
+	string a = "Child.exe ";
 	string b;
-	cout << "Input the size of your mass." << endl;
+
 	int n;
+	cout << "Input the size of your mass." << endl;
 	cin >> n;
-	a += " ";
-	a += _itoa(n, buff, 10);
+
+	char* buff = new char[maxStrLength];
+	_itoa_s(n, buff, maxStrLength, radix);
+	a += buff;
+	delete[] buff;
+
 	cout << "Input the elements of your mass." << endl;
 	for (int i = 0; i < n; i++)
 	{
@@ -24,30 +30,39 @@ int main()
 		a += " ";
 		a += b;
 	}
-	n = a.length();
-	char* lpszCommandLine = new char[n + 1];
-	strcpy(lpszCommandLine, a.c_str());
+
+	char* lpszCommandLine = new char[a.length() + 1];
+	strcpy_s(lpszCommandLine, a.length() + 1, a.c_str());
+	return lpszCommandLine;
+}
+
+int main()
+{
 	STARTUPINFO si;
 	PROCESS_INFORMATION piApp;
+
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
-	si.dwYCountChars = 50;
+	si.dwYCountChars = bufferHeight;
 	si.dwFlags = STARTF_USECOUNTCHARS;
 
-	if (!CreateProcess(NULL, lpszCommandLine, NULL, NULL, FALSE,
+	char* lpszCommandLine = input();
+
+	if (NULL == CreateProcess(NULL, lpszCommandLine, NULL, NULL, FALSE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &piApp))
 	{
-		_cputs("The new process is not created.\n");
-		_cputs("Check the name of the process.\n");
-		_cputs("Press any key to finish.\n");
-		_getch();
+		cout << "The new process is not created." << endl;
+		system("pause");
 		return 0;
 	}
-	_cputs("The new process is created.\n");
+	cout << "The new process is created." << endl;
 
 	WaitForSingleObject(piApp.hProcess, INFINITE);
+
 	CloseHandle(piApp.hThread);
 	CloseHandle(piApp.hProcess);
+	delete[] lpszCommandLine;
+
 	return 0;
 
 }
