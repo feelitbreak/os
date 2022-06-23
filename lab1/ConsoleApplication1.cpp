@@ -12,27 +12,38 @@ using std::endl;
 static int const rangeOfArray = 20;
 static int const numOfNegativeElem = 10;
 
-struct Mass {
+struct Mass 
+{
 	int n;
-	int* &mass;
+	int* A;
 
-	Mass(int n, int* &A) : mass(A) {
+	Mass(int n, int* A) 
+	{
 		this->n = n;
+		this->A = new int[n];
+		for (int i = 0; i < n; i++)
+		{
+			this->A[i] = A[i];
+		}
+	}
+
+	~Mass()
+	{
+		delete[] A;
 	}
 };
 
 DWORD WINAPI worker(LPVOID par)
 {
 	Mass* m = (Mass*)par;
-	int n = m->n;
-	int* &A = m->mass;
+
 	int count = 0;
 
 	cout << "Array:" << endl;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < m->n; i++)
 	{
-		cout << A[i] << endl;
-		if (A[i]) {
+		cout << m->A[i] << endl;
+		if (m->A[i]) {
 			count++;
 		}
 	}
@@ -68,13 +79,13 @@ int main()
 
 	Sleep(start);
 	hThread = CreateThread(NULL, 0, worker, (void*)mass, 0, &IDThread);
-	if (hThread == NULL)
+	if (NULL == hThread)
 	{
 		delete[] A;
 		return GetLastError();
 	}
 	/*hThread = (HANDLE)_beginthreadex(NULL, 0, worker, (void*)mass, 0, &IDThread);
-	if (hThread == NULL)
+	if (NULL == hThread)
 	{
 		delete[] A;
 		return GetLastError();
