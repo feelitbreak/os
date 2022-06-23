@@ -5,6 +5,8 @@ using std::cin;
 using std::cout;
 using std::endl;
 
+static const int releaseNum = 1;
+
 int main(int argc, char* argv[])
 {
 	int n = atoi(argv[1]);
@@ -39,7 +41,7 @@ int main(int argc, char* argv[])
 	}
 
 	WaitForSingleObject(hSemaphore, INFINITE);
-	cout << "I am active.\n";
+	cout << "I am active." << endl;
 
 	char mes;
 	for (int i = 0; i < n; i++) {
@@ -55,9 +57,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	ReleaseSemaphore(hSemaphore, 1, NULL);
+	ReleaseSemaphore(hSemaphore, releaseNum, NULL);
 
-	cout << "Waiting for other processes.\n";
+	cout << "Waiting for other processes." << endl;
 
 	WaitForSingleObject(EventEndParent, INFINITE);
 
