@@ -1,96 +1,93 @@
-//Кендысь Алексей, 2 курс, 9 группа. Лабораторная №1
+п»ї//РљРµРЅРґС‹СЃСЊ РђР»РµРєСЃРµР№, 2 РєСѓСЂСЃ, 9 РіСЂСѓРїРїР°. Р›Р°Р±РѕСЂР°С‚РѕСЂРЅР°СЏ в„–1
 
 #include <windows.h>
 #include <iostream>
 #include <ctime>
 #include <process.h>
-using namespace std;
 
-volatile int n;
+using std::cin;
+using std::cout;
+using std::endl;
+
+static int const rangeOfArray = 20;
+static int const numOfNegativeElem = 10;
 
 struct Mass {
 	int n;
-	int* A;
-	int end;
-	Mass(int n, int* A, int end) {
+	int* &mass;
+
+	Mass(int n, int* &A) : mass(A) {
 		this->n = n;
-		this->A = new int[n];
-		for (int i = 0; i < n; i++) {
-			this->A[i] = A[i];
-		}
-		this->end = end;
 	}
 };
 
-UINT WINAPI worker(LPVOID par)
+DWORD WINAPI worker(LPVOID par)
 {
 	Mass* m = (Mass*)par;
 	int n = m->n;
-	int* A = m->A;
-	long end = m->end;
+	int* &A = m->mass;
 	int count = 0;
-	cout << "Массив:" << endl;
+
+	cout << "Array:" << endl;
 	for (int i = 0; i < n; i++)
 	{
 		cout << A[i] << endl;
 		if (A[i]) {
 			count++;
 		}
-
-		Sleep(12);
 	}
-	Sleep(end);
-	cout << "Количество ненулевых элементов = " << count << endl;
+
+	cout << "The number of non-zero elements = " << count << endl;
 	return 0;
 }
 
 int main()
 {
-	int	inc = 10;
 	HANDLE	hThread;
-	UINT IDThread;
+	DWORD IDThread;
 	int n;
 	int* A;
 
 
-	setlocale(LC_ALL, "rus");
-
-	cout << "Введите размер массива." << endl;
+	cout << "Input the size of the array." << endl;
 	cin >> n;
+
 	A = new int[n];
 	srand((int)time(NULL));
 	for (int i = 0; i < n; i++) {
-		A[i] = (int)rand() % 20 - 10;
+		A[i] = (int)rand() % rangeOfArray - numOfNegativeElem;
 	}
-	/*cout << "Введите элементы массива." << endl;
-	for (int i = 0; i < n; i++)
-	cin >> A[i];*/
+
+	Mass* mass = new Mass(n, A);
 
 	int start, end;
-	cout << "Введите время для остановки потока." << endl;
-	cin >> end;
-	cout << "Введите время для запуска потока." << endl;
+	cout << "Input the time for starting the thread." << endl;
 	cin >> start;
+	cout << "Input the time for suspending the thread." << endl;
+	cin >> end;
 
-	Mass* mass = new Mass(n, A, end);
-	/*hThread = CreateThread(NULL, 0, worker, (void*)mass, 0, &IDThread);
+	Sleep(start);
+	hThread = CreateThread(NULL, 0, worker, (void*)mass, 0, &IDThread);
 	if (hThread == NULL)
-		return GetLastError();*/
-	hThread = (HANDLE)
-		_beginthreadex(NULL, 0, worker, (void*)mass, 0, &IDThread);
-	if (hThread == NULL)
+	{
+		delete[] A;
 		return GetLastError();
+	}
+	/*hThread = (HANDLE)_beginthreadex(NULL, 0, worker, (void*)mass, 0, &IDThread);
+	if (hThread == NULL)
+	{
+		delete[] A;
+		return GetLastError();
+	}*/
 
 	SuspendThread(hThread);
-	Sleep(start);
+	Sleep(end);
 	ResumeThread(hThread);
-
-
-	delete[] A;
 
 	WaitForSingleObject(hThread, INFINITE);
 
 	CloseHandle(hThread);
+	delete[] A;
 
 	return 0;
 }
