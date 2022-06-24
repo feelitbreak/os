@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
 	{
 		if (NULL == ReadFile(hReadPipe, &elem, sizeof(__int8), &dwBytesRead, NULL))
 		{
+			delete[] mass;
 			CloseHandle(hReadPipe);
 			CloseHandle(hWritePipe);
 			CloseHandle(ReadyToRead2);
@@ -91,6 +92,7 @@ int main(int argc, char* argv[])
 		DWORD dwBytesWritten;
 		if (NULL == WriteFile(hWritePipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
 		{
+			delete[] mass;
 			CloseHandle(hReadPipe);
 			CloseHandle(hWritePipe);
 			CloseHandle(ReadyToRead2);
@@ -108,6 +110,7 @@ int main(int argc, char* argv[])
 	
 	system("pause");
 
+	delete[] mass;
 	CloseHandle(hReadPipe);
 	CloseHandle(hWritePipe);
 	CloseHandle(ReadyToRead2);

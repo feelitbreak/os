@@ -34,6 +34,8 @@ int main()
 
 	if (NULL == CreatePipe(&hReadPipe,	&hWritePipe, &sa, 0))
 	{
+		delete[] mass;
+
 		cout << "Failed to create pipe." << endl;
 		system("pause");
 		return GetLastError();
@@ -44,6 +46,7 @@ int main()
 	{
 		CloseHandle(hReadPipe);
 		CloseHandle(hWritePipe);
+		delete[] mass;
 
 		cout << "Failed to create event." << endl;
 		system("pause");
@@ -55,6 +58,7 @@ int main()
 		CloseHandle(ReadyToRead1);
 		CloseHandle(hReadPipe);
 		CloseHandle(hWritePipe);
+		delete[] mass;
 
 		cout << "Failed to create event." << endl;
 		system("pause");
@@ -73,6 +77,7 @@ int main()
 		CloseHandle(ReadyToRead1);
 		CloseHandle(hReadPipe);
 		CloseHandle(hWritePipe);
+		delete[] mass;
 
 		cout << "Failed to create process." << endl;
 		system("pause");
@@ -90,6 +95,7 @@ int main()
 		CloseHandle(ReadyToRead1);
 		CloseHandle(hReadPipe);
 		CloseHandle(hWritePipe);
+		delete[] mass;
 
 		cout << "Failed to write to file." << endl;
 		system("pause");
@@ -107,6 +113,7 @@ int main()
 			CloseHandle(ReadyToRead1);
 			CloseHandle(hReadPipe);
 			CloseHandle(hWritePipe);
+			delete[] mass;
 
 			cout << "Failed to write to file." << endl;
 			system("pause");
@@ -130,6 +137,7 @@ int main()
 			CloseHandle(ReadyToRead1);
 			CloseHandle(hReadPipe);
 			CloseHandle(hWritePipe);
+			delete[] mass;
 
 			cout << "Failed to read from the pipe." << endl;
 			system("pause");
@@ -146,6 +154,7 @@ int main()
 	CloseHandle(ReadyToRead1);
 	CloseHandle(hReadPipe);
 	CloseHandle(hWritePipe);
+	delete[] mass;
 
 	system("pause");
 	return 0;
