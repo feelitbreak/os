@@ -130,6 +130,10 @@ int main()
 				CloseHandle(hMassProcess[j]);
 			}
 
+			delete[] hMassThread;
+			delete[] hMassProcess;
+			delete[] ChildLine;
+			delete[] ParentLine;
 			CloseHandle(hMutex);
 			CloseHandle(hSemaphore);
 			CloseHandle(EventEndParent);
@@ -160,6 +164,10 @@ int main()
 				CloseHandle(hMassProcess[j]);
 			}
 
+			delete[] hMassThread;
+			delete[] hMassProcess;
+			delete[] ChildLine;
+			delete[] ParentLine;
 			CloseHandle(hMutex);
 			CloseHandle(hSemaphore);
 			CloseHandle(EventEndParent);
@@ -200,7 +208,11 @@ int main()
 		CloseHandle(hMassThread[i]);
 		CloseHandle(hMassProcess[i]);
 	}
-
+	
+	delete[] hMassThread;
+	delete[] hMassProcess;
+	delete[] ChildLine;
+	delete[] ParentLine;
 	CloseHandle(hMutex);
 	CloseHandle(hSemaphore);
 	CloseHandle(EventEndParent);
