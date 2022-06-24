@@ -13,10 +13,14 @@ int main()
 
 	for (int i = 0; i < N; i++) {
 		hSemaphore = CreateSemaphore(NULL, 1, 1, NULL);
-		if (hSemaphore == NULL)
+		if (NULL == hSemaphore == NULL)
 		{
-			cout << "Create semaphore failed. Press any key to exit." << endl;
-			cin.get();
+			for (int j = i - 1; j >= 0; j--) {
+				CloseHandle(forks[j]);
+			}
+
+			cout << "Create semaphore failed." << endl;
+			system("pause");
 			return GetLastError();
 		}
 		forks[i] = hSemaphore;
@@ -30,13 +34,16 @@ int main()
 		philosophers[i] = CreateThread(NULL, 0, philosopher, (void*) par, 0, &IDPhilosopher);
 		if (philosophers[i] == NULL)
 		{
-			cout << "Create thread failed. Press any key to exit." << endl;
-			cin.get();
-
-			DeleteCriticalSection(&cs);
-			for (int k = N - 1; k >= 0; k--) {
-				CloseHandle(forks[k]);
+			for (int j = i - 1; j >= 0; j--) {
+				CloseHandle(philosophers[j]);
 			}
+			DeleteCriticalSection(&cs);
+			for (int j = N - 1; j >= 0; j--) {
+				CloseHandle(forks[j]);
+			}
+
+			cout << "Create thread failed." << endl;
+			system("pause");
 			return GetLastError();
 		}
 	}
@@ -50,4 +57,7 @@ int main()
 	for (int i = N - 1; i >= 0; i--) {
 		CloseHandle(forks[i]);
 	}
+
+	system("pause");
+	return 0;
 }

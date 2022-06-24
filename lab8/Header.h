@@ -1,6 +1,5 @@
 #include <windows.h>
 #include <iostream>
-#include <process.h>
 
 using std::cout;
 using std::cin;
