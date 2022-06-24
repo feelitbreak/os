@@ -51,6 +51,8 @@ int main()
 	if (NULL == CreateProcess(NULL, lpszCommandLine, NULL, NULL, FALSE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &piApp))
 	{
+		delete[] lpszCommandLine;
+
 		cout << "The new process is not created." << endl;
 		system("pause");
 		return 0;
