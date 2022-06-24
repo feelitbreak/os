@@ -2,6 +2,38 @@
 
 #include "Header.h"
 
+Info* createInfoProd(int i, int& sumProd, MonitorStack& stack)
+{
+	int nElem;
+	short* massElem;
+	cout << "Input the amount of elements for producer " << i << "." << endl;
+	cin >> nElem;
+	sumProd += nElem;
+	massElem = new short[nElem];
+	cout << "Input the elements for producer " << i << "." << endl;
+	for (int j = 0; j < nElem; j++) {
+		cin >> massElem[j];
+	}
+
+	Info* prodInfo = new Info(nElem, massElem, stack);
+
+	delete[] massElem;
+	return prodInfo;
+}
+
+Info* createInfoCons(int i, int& sumCons, MonitorStack& stack)
+{
+	int nElem;
+
+	cout << "Input the amount of elements for consumer " << i << "." << endl;
+	cin >> nElem;
+	sumCons += nElem;
+
+	Info* consInfo = new Info(nElem, stack);
+
+	return consInfo;
+}
+
 int main()
 {
 	DWORD IDProducer, IDConsumer;
@@ -12,6 +44,7 @@ int main()
 
 	cout << "Input stack size." << endl;
 	cin >> size;
+
 	MonitorStack stack(size);
 
 	cout << "Input the amount of producer threads." << endl;
@@ -19,101 +52,129 @@ int main()
 	cout << "Input the amount of consumer threads." << endl;
 	cin >> nCons;
 
-	handles = new HANDLE[nProd + nCons];
+	int n = nProd + nCons;
+	handles = new HANDLE[n];
 
 	hSemaphoreProd = CreateSemaphore(NULL, 0, size, "SemaphoreProd");
-	if (hSemaphoreProd == NULL)
+	if (NULL == hSemaphoreProd)
 	{
-		cout << "Create semaphore failed. Press any key to exit." << endl;
-		cin.get();
+		delete[] handles;
+
+		cout << "Failed to create semaphore." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	hSemaphoreCons = CreateSemaphore(NULL, 0, size, "SemaphoreCons");
-	if (hSemaphoreCons == NULL)
+	if (NULL == hSemaphoreCons)
 	{
-		cout << "Create semaphore failed. Press any key to exit." << endl;
-		cin.get();
 		CloseHandle(hSemaphoreProd);
+		delete[] handles;
+
+		cout << "Failed to create semaphore." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	hMutex = CreateMutex(NULL, FALSE, "Mutex");
-	if (hMutex == NULL)
+	if (NULL == hMutex)
 	{
-		cout << "Create mutex failed." << endl;
-		cout << "Press any key to exit." << endl;
-		cin.get();
+		CloseHandle(hSemaphoreCons);
+		CloseHandle(hSemaphoreProd);
+		delete[] handles;
 
+		cout << "Failed to create mutex." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	int sumProd = 0;
 	int sumCons = 0;
 
-	int nElem;
-	short* massElem;
-	for (int i = 0; i < nProd; i++) 
+	for (int i = 0; i < nProd && i < n; i++) 
 	{
-		cout << "Input the amount of elements for producer " << i + 1 << "." << endl;
-		cin >> nElem;
-		sumProd += nElem;
-		massElem = new short[nElem];
-		cout << "Input the elements for producer " << i + 1 << "." << endl;
-		for (int j = 0; j < nElem; j++) {
-			cin >> massElem[j];
-		}
+		Info* prodInfo = createInfoProd(i + 1, sumProd, stack);
 
-		Info* prodInput = new Info(nElem, massElem, stack);
-		handles[i] = CreateThread(NULL, 0, producer, (void*)prodInput, 0, &IDProducer);
-		if (handles[i] == NULL)
+		handles[i] = CreateThread(NULL, 0, producer, reinterpret_cast<void*>(prodInfo), 0, &IDProducer);
+		if (NULL == handles[i])
+		{
+			for (int j = i - 1; j >= 0; j--)
+			{
+				CloseHandle(handles[j]);
+			}
+			CloseHandle(hMutex);
+			CloseHandle(hSemaphoreCons);
+			CloseHandle(hSemaphoreProd);
+			delete[] handles;
+
+			cout << "Failed to create thread." << endl;
+			system("pause");
 			return GetLastError();
+		}
 	}
 
-	for (int i = 0; i < nCons; i++) {
-		cout << "Input the amount of elements for consumer " << i + 1 << "." << endl;
-		cin >> nElem;
-		sumCons += nElem;
+	for (int i = nProd; i < n; i++) {
+		Info* consInfo = createInfoCons(i + 1 - nProd, sumCons, stack);
 
-		Info* consInput = new Info(nElem, stack);
-		handles[i + nProd] = CreateThread(NULL, 0, consumer, (void*)consInput, 0, &IDConsumer);
-		if (handles[i + nProd] == NULL)
+		handles[i] = CreateThread(NULL, 0, consumer, reinterpret_cast<void*>(consInfo), 0, &IDConsumer);
+		if (NULL == handles[i])
+		{
+			for (int j = i - 1; j >= 0; j--)
+			{
+				CloseHandle(handles[j]);
+			}
+			CloseHandle(hMutex);
+			CloseHandle(hSemaphoreCons);
+			CloseHandle(hSemaphoreProd);
+			delete[] handles;
+
+			cout << "Failed to create thread." << endl;
+			system("pause");
 			return GetLastError();
+		}
 	}
 
 	if (sumProd < sumCons) 
 	{
-		cout << "Error. Too many products to consume." << endl;
+		for (int j = n - 1; j >= 0; j--)
+		{
+			CloseHandle(handles[j]);
+		}
+		CloseHandle(hMutex);
 		CloseHandle(hSemaphoreCons);
 		CloseHandle(hSemaphoreProd);
-		for (int i = nProd + nCons - 1; i >= 0; i--)
-		{
-			CloseHandle(handles[i]);
-		}
+		delete[] handles;
 
+		cout << "Error. Too many products to consume." << endl;
+		system("pause");
 		return 0;
 	} else if(sumProd > sumCons + size) {
-		cout << "Error. Not enough space in the stack." << endl;
+		for (int j = n - 1; j >= 0; j--)
+		{
+			CloseHandle(handles[j]);
+		}
+		CloseHandle(hMutex);
 		CloseHandle(hSemaphoreCons);
 		CloseHandle(hSemaphoreProd);
-		for (int i = nProd + nCons - 1; i >= 0; i--)
-		{
-			CloseHandle(handles[i]);
-		}
+		delete[] handles;
 
+		cout << "Error. Not enough space in the stack." << endl;
+		system("pause");
 		return 0;
 	}
 	ReleaseSemaphore(hSemaphoreProd, size, NULL);
 
-	WaitForMultipleObjects(nProd + nCons, handles, TRUE, INFINITE);
+	WaitForMultipleObjects(n, handles, TRUE, INFINITE);
 
+	for (int j = n - 1; j >= 0; j--)
+	{
+		CloseHandle(handles[j]);
+	}
 	CloseHandle(hMutex);
 	CloseHandle(hSemaphoreCons);
 	CloseHandle(hSemaphoreProd);
-	for(int i = nProd + nCons - 1; i >= 0; i--)
-	{
-		CloseHandle(handles[i]);
-	}
+	delete[] handles;
 
+	system("pause");
 	return 0;
 }

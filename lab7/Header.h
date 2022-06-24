@@ -2,6 +2,7 @@
 #include <iostream>
 #include <ctime>
 #include <process.h>
+
 using std::cin;
 using std::cout;
 using std::endl;
@@ -35,9 +36,24 @@ public:
 	Info(int n, short* mass, MonitorStack& _stack) : stack(_stack)
 	{
 		nElem = n;
-		massElem = mass;
+		massElem = new short[nElem];
+		for (int i = 0; i < nElem; i++) {
+			massElem[i] = mass[i];
+		}
+	}
+
+	~Info()
+	{
+		if (NULL != massElem)
+		{
+			delete[] massElem;
+		}
 	}
 };
+
+Info* createInfoProd(int i, int& sumProd, MonitorStack& stack);
+
+Info* createInfoCons(int i, int& sumCons, MonitorStack& stack);
 
 DWORD WINAPI producer(LPVOID par);
 

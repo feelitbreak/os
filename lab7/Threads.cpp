@@ -1,47 +1,47 @@
 #include "Header.h"
 
 DWORD WINAPI producer(LPVOID par) {
-	Info* elems = (Info*) par;
-
-	int n = elems->nElem;
-	short* mass = elems->massElem;
-	MonitorStack &stack = elems->stack;
+	Info* elems = reinterpret_cast<Info*>(par);
 
 	HANDLE hSemaphoreProd, hSemaphoreCons, hMutex;
 
 	hSemaphoreProd = OpenSemaphore(SEMAPHORE_ALL_ACCESS, FALSE, "SemaphoreProd");
-	if (hSemaphoreProd == NULL)
+	if (NULL == hSemaphoreProd)
 	{
-		cout << "Open semaphore failed. Press any key to exit." << endl;
-		cin.get();
+		cout << "Failed to open semaphore." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	hSemaphoreCons = OpenSemaphore(SEMAPHORE_ALL_ACCESS, FALSE, "SemaphoreCons");
-	if (hSemaphoreCons == NULL)
+	if (NULL == hSemaphoreCons)
 	{
-		cout << "Open semaphore failed. Press any key to exit." << endl;
-		cin.get();
 		CloseHandle(hSemaphoreProd);
+
+		cout << "Failed to open semaphore." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	hMutex = OpenMutex(SYNCHRONIZE, FALSE, "Mutex");
-	if (hMutex == NULL)
+	if (NULL == hMutex)
 	{
-		cout << "Open mutex failed. Press any key to exit." << endl;
-		cin.get();
 		CloseHandle(hSemaphoreCons);
 		CloseHandle(hSemaphoreProd);
+
+		cout << "Failed to open mutex." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
-	for (int i = 0; i < n; i++) {
+	for (int i = 0; i < elems->nElem; i++) {
 		WaitForSingleObject(hSemaphoreProd, INFINITE);
+
 		WaitForSingleObject(hMutex, INFINITE);
-		stack.Push(mass[i]);
-		cout << "Element " << mass[i] << " has been produced." << endl;
+		elems->stack.Push(elems->massElem[i]);
+		cout << "Element " << elems->massElem[i] << " has been produced." << endl;
 		ReleaseMutex(hMutex);
+
 		ReleaseSemaphore(hSemaphoreCons, 1, NULL);
 	}
 
@@ -52,47 +52,48 @@ DWORD WINAPI producer(LPVOID par) {
 }
 
 DWORD WINAPI consumer(LPVOID par) {
-	Info* elems = (Info*)par;
-
-	int n = elems->nElem;
-	MonitorStack& stack = elems->stack;
+	Info* elems = reinterpret_cast<Info*>(par);
 
 	HANDLE hSemaphoreProd, hSemaphoreCons, hMutex;
 
 	hSemaphoreProd = OpenSemaphore(SEMAPHORE_ALL_ACCESS, FALSE, "SemaphoreProd");
-	if (hSemaphoreProd == NULL)
+	if (NULL == hSemaphoreProd)
 	{
-		cout << "Create semaphore failed. Press any key to exit." << endl;
-		cin.get();
+		cout << "Failed to open semaphore." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	hSemaphoreCons = OpenSemaphore(SEMAPHORE_ALL_ACCESS, FALSE, "SemaphoreCons");
-	if (hSemaphoreCons == NULL)
+	if (NULL == hSemaphoreCons)
 	{
-		cout << "Create semaphore failed. Press any key to exit." << endl;
-		cin.get();
 		CloseHandle(hSemaphoreProd);
+
+		cout << "Failed to open semaphore." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	hMutex = OpenMutex(SYNCHRONIZE, FALSE, "Mutex");
-	if (hMutex == NULL)
+	if (NULL == hMutex)
 	{
-		cout << "Open mutex failed. Press any key to exit." << endl;
-		cin.get();
 		CloseHandle(hSemaphoreCons);
 		CloseHandle(hSemaphoreProd);
+
+		cout << "Failed to open mutex." << endl;
+		system("pause");
 		return GetLastError();
 	}
 
 	short elem;
-	for (int i = 0; i < n; i++) {
+	for (int i = 0; i < elems->nElem; i++) {
 		WaitForSingleObject(hSemaphoreCons, INFINITE);
+
 		WaitForSingleObject(hMutex, INFINITE);
-		elem = stack.Pop();
+		elem = elems->stack.Pop();
 		cout << "Element " << elem << " has been consumed." << endl;
 		ReleaseMutex(hMutex);
+
 		ReleaseSemaphore(hSemaphoreProd, 1, NULL);
 	}
 
