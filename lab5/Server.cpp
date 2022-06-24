@@ -10,17 +10,24 @@ static int const maxLength = 80;
 static char const lastElem = 'Z';
 static char const firstElem = 'A';
 
+void generateMass(int n, __int8* mass)
+{
+	srand((__int8)time(NULL));
+	for (int i = 0; i < n; i++) {
+		mass[i] = (__int8)rand() % (lastElem - firstElem) + firstElem;
+	}
+}
+
 int main()
 {
 	int n;
 	cout << "Input the size of your mass." << endl;
 	cin >> n;
 
-	__int8* mass = new __int8[n];
-	srand((__int8)time(NULL));
-	for (int i = 0; i < n; i++) {
-		mass[i] = (__int8)rand() % (lastElem - firstElem) + firstElem;
-	}
+	__int8* mass;
+	mass = new __int8[n];
+
+	generateMass(n, mass);
 
 	char lpszComLine[maxLength];
 	STARTUPINFO si;
@@ -147,6 +154,7 @@ int main()
 	}
 	cout << "The process finished reading from the pipe." << endl;
 
+	system("pause");
 	
 	CloseHandle(pi.hThread);
 	CloseHandle(pi.hProcess);
@@ -156,6 +164,5 @@ int main()
 	CloseHandle(hWritePipe);
 	delete[] mass;
 
-	system("pause");
 	return 0;
 }

@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
 	cout << "The process finished writing to the pipe." << endl;
 
 	SetEvent(ReadyToRead2);
-	
+
 	system("pause");
 
 	delete[] mass;
