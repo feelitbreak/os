@@ -1,11 +1,26 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
-#include <conio.h>
 #include <algorithm>
 #include <iostream>
+
+using std::cin;
+using std::cout;
+using std::endl;
+using std::sort;
+
 static const int MAX_STR_LENGTH = 80;
 
-using std::sort;
+void mySort(int n, __int8* mass)
+{
+	sort(mass, mass + n, [](__int8 x, __int8 y) { return (x < y); });
+}
+
+void outMass(int n, __int8* mass)
+{
+	for (int i = 0; i < n; i++) {
+		cout << mass[i] << " ";
+	}
+	cout << endl;
+}
 
 int main()
 {
@@ -13,26 +28,19 @@ int main()
 	char pipeName[MAX_STR_LENGTH];
 	HANDLE hNamedPipe;
 
-	_cputs("Input the name of the server machine.\n");
-	_cscanf("%s", machineName);
-	strcpy(pipeName, "\\\\");
-	strcat(pipeName, machineName);
-	strcat(pipeName, "\\pipe\\demo_pipe");
+	cout << "Input the name of the server machine." << endl;
+	cin >> machineName;
 
-	hNamedPipe = CreateFile(
-		pipeName,
-		GENERIC_WRITE | GENERIC_READ,
-		FILE_SHARE_READ | FILE_SHARE_WRITE,
-		(LPSECURITY_ATTRIBUTES)NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		(HANDLE)NULL
-	);
-	if (hNamedPipe == INVALID_HANDLE_VALUE)
+	strcpy_s(pipeName, MAX_STR_LENGTH, "\\\\");
+	strcat_s(pipeName, MAX_STR_LENGTH, machineName);
+	strcat_s(pipeName, MAX_STR_LENGTH, "\\pipe\\demo_pipe");
+
+	hNamedPipe = CreateFile(pipeName, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+		(LPSECURITY_ATTRIBUTES)NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, (HANDLE)NULL);
+	if (INVALID_HANDLE_VALUE == hNamedPipe)
 	{
-		_cputs("Create pipe failed.\n");
+		cout << "Failed to create file." << endl;
 		system("pause");
-
 		return GetLastError();
 	}
 
@@ -43,57 +51,56 @@ int main()
 	DWORD dwBytesRead;
 
 
-	if (!ReadFile(hNamedPipe, &n, sizeof(n), &dwBytesRead, (LPOVERLAPPED)NULL))
+	if (NULL == ReadFile(hNamedPipe, &n, sizeof(n), &dwBytesRead, (LPOVERLAPPED)NULL))
 	{
 		CloseHandle(hNamedPipe);
-		_cputs("Read from the pipe failed.\n");
-		system("pause");
 
+		cout << "Failed to read from the pipe." << endl;
+		system("pause");
 		return GetLastError();
 	}
-	_cprintf("The size of the array %d has been read from the pipe.\n", n);
+	cout << "The size of the array " << n << " has been read from the pipe." << endl;
 
 	mass = new __int8[n];
 	for (int i = 0; i < n; i++)
 	{
-		if (!ReadFile(hNamedPipe, &elem, sizeof(__int8), &dwBytesRead, (LPOVERLAPPED)NULL))
+		if (NULL == ReadFile(hNamedPipe, &elem, sizeof(__int8), &dwBytesRead, (LPOVERLAPPED)NULL))
 		{
+			delete[] mass;
 			CloseHandle(hNamedPipe);
-			_cputs("Read from the pipe failed.\n");
-			system("pause");
 
+			cout << "Failed to read from the pipe." << endl;
+			system("pause");
 			return GetLastError();
 		}
-		_cprintf("The element %c has been read from the pipe.\n", elem);
+		cout << "The element " << elem << " has been read from the pipe." << endl;
 		mass[i] = elem;
 	}
-	_cputs("The process finished reading from the pipe.\n");
+	cout << "The process finished reading from the pipe." << endl;
 
-
-	sort(mass, mass + n, [](__int8 x, __int8 y) { return (x < y); });
-	_cputs("Sorted array: ");
-	for (int i = 0; i < n; i++) {
-		_cprintf("%c ", mass[i]);
-	}
-	_cputs("\n");
-
+	mySort(n, mass);
+	cout << "Sorted array: ";
+	outMass(n, mass);
 
 	for (int i = 0; i < n; i++)
 	{
 		DWORD dwBytesWritten;
-		if (!WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, (LPOVERLAPPED)NULL))
+		if (NULL == WriteFile(hNamedPipe, &mass[i], sizeof(__int8), &dwBytesWritten, (LPOVERLAPPED)NULL))
 		{
+			delete[] mass;
 			CloseHandle(hNamedPipe);
-			_cputs("Write to file failed.\n");
-			system("pause");
 
+			cout << "Failed to write to file." << endl;
+			system("pause");
 			return GetLastError();
 		}
-		_cprintf("The element %c has been written to the pipe.\n", mass[i]);
+		cout << "The element " << mass[i] << " has been written to the pipe." << endl;
 	}
-	_cputs("The process finished writing to the pipe.\n");
+	cout << "The process finished writing to the pipe." << endl;
+
 	system("pause");
 
+	delete[] mass;
 	CloseHandle(hNamedPipe);
 
 	return 0;
