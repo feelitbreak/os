@@ -1,9 +1,24 @@
 #include <windows.h>
-#include <conio.h>
 #include <algorithm>
 #include <iostream>
 
 using std::sort;
+using std::cin;
+using std::cout;
+using std::endl;
+
+void mySort(int n, __int8* mass)
+{
+	sort(mass, mass + n, [](__int8 x, __int8 y) { return (x < y); });
+}
+
+void outMass(int n, __int8* mass)
+{
+	for (int i = 0; i < n; i++) {
+		cout << mass[i] << " ";
+	}
+	cout << endl;
+}
 
 int main(int argc, char* argv[])
 {
@@ -11,89 +26,92 @@ int main(int argc, char* argv[])
 	HANDLE ReadyToRead1, ReadyToRead2;
 
 	ReadyToRead1 = OpenEvent(EVENT_ALL_ACCESS, FALSE, "Ready1");
-	if (ReadyToRead1 == NULL)
+	if (NULL == ReadyToRead1)
+	{
+		cout << "Failed to open event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 	ReadyToRead2 = OpenEvent(EVENT_ALL_ACCESS, FALSE, "Ready2");
-	if (ReadyToRead2 == NULL)
-		return GetLastError();
+	if (NULL == ReadyToRead2)
+	{
+		CloseHandle(ReadyToRead1);
 
-	hWritePipe = (HANDLE)atoi(argv[1]);
-	hReadPipe = (HANDLE)atoi(argv[2]);
+		cout << "Failed to open event." << endl;
+		system("pause");
+		return GetLastError();
+	}
+
+	hWritePipe = reinterpret_cast<HANDLE>(atoll(argv[1]));
+	hReadPipe = reinterpret_cast<HANDLE>(atoll(argv[2]));
 
 	WaitForSingleObject(ReadyToRead1, INFINITE);
 
 	int n;
 	__int8 elem;
 	DWORD dwBytesRead;
-	if (!ReadFile(
-		hReadPipe,
-		&n,
-		sizeof(n),
-		&dwBytesRead,
-		NULL))
+	if (NULL == ReadFile(hReadPipe, &n, sizeof(n), &dwBytesRead, NULL))
 	{
-		_cputs("Read from the pipe failed.\n");
-		_cputs("Press any key to finish.\n");
-		_getch();
+		CloseHandle(hReadPipe);
+		CloseHandle(hWritePipe);
+		CloseHandle(ReadyToRead2);
+		CloseHandle(ReadyToRead1);
+
+		cout << "Failed to read from the pipe." << endl;
+		system("pause");
 		return GetLastError();
 	}
-	_cprintf("The size of the array %d has been read from the pipe.\n", n);
+	cout << "The size of the array " << n << " has been read from the pipe." << endl;
+
 	__int8* mass = new __int8[n];
 	for (int i = 0; i < n; i++)
 	{
-		if (!ReadFile(
-			hReadPipe,
-			&elem,
-			sizeof(__int8),
-			&dwBytesRead,
-			NULL))
+		if (NULL == ReadFile(hReadPipe, &elem, sizeof(__int8), &dwBytesRead, NULL))
 		{
-			_cputs("Read from the pipe failed.\n");
-			_cputs("Press any key to finish.\n");
-			_getch();
+			CloseHandle(hReadPipe);
+			CloseHandle(hWritePipe);
+			CloseHandle(ReadyToRead2);
+			CloseHandle(ReadyToRead1);
+
+			cout << "Failed to read from the pipe." << endl;
+			system("pause");
 			return GetLastError();
 		}
-		_cprintf("The element %c has been read from the pipe.\n", elem);
+		cout << "The element " << elem << " has been read from the pipe." << endl;
 		mass[i] = elem;
 	}
-	_cputs("The process finished reading from the pipe.\n");
+	cout << "The process finished reading from the pipe." << endl;
 
-	sort(mass, mass + n, [](__int8 x, __int8 y) { return (x < y); });
-	_cputs("Sorted array: ");
-	for (int i = 0; i < n; i++) {
-		_cprintf("%c ", mass[i]);
-	}
-	_cputs("\n");
-
+	mySort(n, mass);
+	cout << "Sorted array: ";
+	outMass(n, mass);
 
 	for (int i = 0; i < n; i++)
 	{
 		DWORD dwBytesWritten;
-		if (!WriteFile(
-			hWritePipe,
-			&mass[i],
-			sizeof(__int8),
-			&dwBytesWritten,
-			NULL))
+		if (NULL == WriteFile(hWritePipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
 		{
-			_cputs("Write to file failed.\n");
-			_cputs("Press any key to finish.\n");
-			_getch();
+			CloseHandle(hReadPipe);
+			CloseHandle(hWritePipe);
+			CloseHandle(ReadyToRead2);
+			CloseHandle(ReadyToRead1);
+
+			cout << "Failed to write to file." << endl;
+			system("pause");
 			return GetLastError();
 		}
-		_cprintf("The element %c has been written to the pipe.\n", mass[i]);
+		cout << "The element " << mass[i] << " has been written to the pipe." << endl;
 	}
-	_cputs("The process finished writing to the pipe.\n");
+	cout << "The process finished writing to the pipe." << endl;
+
 	SetEvent(ReadyToRead2);
-
 	
-	_cputs("Press any key to exit.\n");
-	_getch();
+	system("pause");
 
-	CloseHandle(hWritePipe);
 	CloseHandle(hReadPipe);
-	CloseHandle(ReadyToRead1);
+	CloseHandle(hWritePipe);
 	CloseHandle(ReadyToRead2);
+	CloseHandle(ReadyToRead1);
 
 	return 0;
 }

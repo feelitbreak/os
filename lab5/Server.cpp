@@ -1,21 +1,28 @@
 //Кендысь Алексей, 2 курс, 9 группа. Лабораторная №5
-#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
-#include <conio.h>
 #include <iostream>
+
+using std::cin;
+using std::cout;
+using std::endl;
+
+static int const maxLength = 80;
+static char const lastElem = 'Z';
+static char const firstElem = 'A';
 
 int main()
 {
 	int n;
-	_cputs("Input the size of your mass.\n");
-	_cscanf("%d", &n);
+	cout << "Input the size of your mass." << endl;
+	cin >> n;
+
 	__int8* mass = new __int8[n];
 	srand((__int8)time(NULL));
 	for (int i = 0; i < n; i++) {
-		mass[i] = (__int8)rand() % ('z' - '0') + '0';
+		mass[i] = (__int8)rand() % (lastElem - firstElem) + firstElem;
 	}
-	char lpszComLine[80];
 
+	char lpszComLine[maxLength];
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	HANDLE hWritePipe, hReadPipe, ReadyToRead1, ReadyToRead2;
@@ -25,95 +32,121 @@ int main()
 	sa.lpSecurityDescriptor = NULL;	
 	sa.bInheritHandle = TRUE;
 
-	if (!CreatePipe(&hReadPipe,	&hWritePipe, &sa, 0))
+	if (NULL == CreatePipe(&hReadPipe,	&hWritePipe, &sa, 0))
 	{
-		_cputs("Create pipe failed.\n");
-		_cputs("Press any key to finish.\n");
-		_getch();
-
+		cout << "Failed to create pipe." << endl;
+		system("pause");
 		return GetLastError();
 	}
 	
 	ReadyToRead1 = CreateEvent(NULL, FALSE, FALSE, "Ready1");
-	if (ReadyToRead1 == NULL)
+	if (NULL == ReadyToRead1)
+	{
+		CloseHandle(hReadPipe);
+		CloseHandle(hWritePipe);
+
+		cout << "Failed to create event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 	ReadyToRead2 = CreateEvent(NULL, FALSE, FALSE, "Ready2");
-	if (ReadyToRead2 == NULL)
+	if (NULL == ReadyToRead2)
+	{
+		CloseHandle(ReadyToRead1);
+		CloseHandle(hReadPipe);
+		CloseHandle(hWritePipe);
+
+		cout << "Failed to create event." << endl;
+		system("pause");
 		return GetLastError();
+	}
 
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
 
-	sprintf(lpszComLine, "Sort.exe %d %d", (int)(hWritePipe), (int)(hReadPipe));
+	sprintf_s(lpszComLine, maxLength, "Sort.exe %lld %lld", reinterpret_cast<intptr_t>(hWritePipe), reinterpret_cast<intptr_t>(hReadPipe));
 
-	if (!CreateProcess(NULL, lpszComLine, NULL, NULL, TRUE,
+	if (NULL == CreateProcess(NULL, lpszComLine, NULL, NULL, TRUE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi))
 	{
-		_cputs("The new process is not created.\n");
-		_cputs("Check the name of the process.\n");
-		_cputs("Press any key to finish.\n");
-		_getch();
+		CloseHandle(ReadyToRead2);
+		CloseHandle(ReadyToRead1);
+		CloseHandle(hReadPipe);
+		CloseHandle(hWritePipe);
+
+		cout << "Failed to create process." << endl;
+		system("pause");
 		return 0;
 	}
-	_cputs("The new process is created.\n");
+	cout << "The new process has been created." << endl;
 
 
 	DWORD dwBytesWritten;
-	if (!WriteFile(hWritePipe, &n, sizeof(int), &dwBytesWritten, NULL))
+	if (NULL == WriteFile(hWritePipe, &n, sizeof(int), &dwBytesWritten, NULL))
 	{
-		_cputs("Write to file failed.\n");
-		_cputs("Press any key to finish.\n");
-		_getch();
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+		CloseHandle(ReadyToRead2);
+		CloseHandle(ReadyToRead1);
+		CloseHandle(hReadPipe);
+		CloseHandle(hWritePipe);
+
+		cout << "Failed to write to file." << endl;
+		system("pause");
 		return GetLastError();
 	}	
-	_cprintf("The size of the array %d has been written to the pipe.\n", n);
+	cout << "The size of the array " << n << " has been written to the pipe." << endl;
+
 	for (int i = 0; i < n; i++)
 	{
-		if (!WriteFile(hWritePipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
+		if (NULL == WriteFile(hWritePipe, &mass[i], sizeof(__int8), &dwBytesWritten, NULL))
 		{
-			_cputs("Write to file failed.\n");
-			_cputs("Press any key to finish.\n");
-			_getch();
+			CloseHandle(pi.hThread);
+			CloseHandle(pi.hProcess);
+			CloseHandle(ReadyToRead2);
+			CloseHandle(ReadyToRead1);
+			CloseHandle(hReadPipe);
+			CloseHandle(hWritePipe);
+
+			cout << "Failed to write to file." << endl;
+			system("pause");
 			return GetLastError();
 		}
-		_cprintf("The element %c has been written to the pipe.\n", mass[i]);
+		cout << "The element " << mass[i] << " has been written to the pipe." << endl;
 	}
-	_cputs("The process finished writing to the pipe.\n");
+	cout << "The process finished writing to the pipe." << endl;
+
 	SetEvent(ReadyToRead1);
-
-
-
 
 	WaitForSingleObject(ReadyToRead2, INFINITE);
 	DWORD dwBytesRead;
 	for (int i = 0; i < n; i++)
 	{
-		if (!ReadFile(
-			hReadPipe,
-			&mass[i],
-			sizeof(__int8),
-			&dwBytesRead,
-			NULL))
+		if (NULL == ReadFile(hReadPipe, &mass[i], sizeof(__int8), &dwBytesRead, NULL))
 		{
-			_cputs("Read from the pipe failed.\n");
-			_cputs("Press any key to finish.\n");
-			_getch();
+			CloseHandle(pi.hThread);
+			CloseHandle(pi.hProcess);
+			CloseHandle(ReadyToRead2);
+			CloseHandle(ReadyToRead1);
+			CloseHandle(hReadPipe);
+			CloseHandle(hWritePipe);
+
+			cout << "Failed to read from the pipe." << endl;
+			system("pause");
 			return GetLastError();
 		}
-		_cprintf("The element %c has been read from the pipe.\n", mass[i]);
+		cout << "The element " << mass[i] << " has been read from the pipe." << endl;
 	}
-	_cputs("The process finished reading from the pipe.\n");
+	cout << "The process finished reading from the pipe." << endl;
 
 	
+	CloseHandle(pi.hThread);
+	CloseHandle(pi.hProcess);
+	CloseHandle(ReadyToRead2);
+	CloseHandle(ReadyToRead1);
 	CloseHandle(hReadPipe);
 	CloseHandle(hWritePipe);
-	CloseHandle(ReadyToRead1);
-	CloseHandle(ReadyToRead2);
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
 
-	_cputs("Press any key to exit.\n");
-	_getch();
-
+	system("pause");
 	return 0;
 }
