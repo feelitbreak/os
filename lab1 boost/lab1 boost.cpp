@@ -4,6 +4,7 @@
 using std::cin;
 using std::cout;
 using std::endl;
+using boost::thread;
 
 static int const rangeOfArray = 20;
 static int const numOfNegativeElem = 10;
@@ -13,7 +14,7 @@ void wait(int seconds)
     boost::this_thread::sleep(boost::posix_time::seconds(seconds));
 }
 
-void thread(int time, int n, int* mass)
+void worker(int time, int n, int* mass)
 {
     int count = 0;
     int halfWayThrough = n / 2;
@@ -57,7 +58,7 @@ int main()
 
     wait(start);
 
-    boost::thread t(thread, end, n, A);
+    thread t(worker, end, n, A);
     t.join();
 
     delete[] A;
